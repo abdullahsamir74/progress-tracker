@@ -2,7 +2,7 @@
    VIEW — Dashboard
    ======================================== */
 
-import { formatDuration } from '../utils.js';
+import { formatDuration, getLocalDateString } from '../utils.js';
 import {
   calendarEvents, trackedTasks, setTrackedTasks,
   setCalendarEvents,
@@ -23,7 +23,7 @@ export function updateDashboardDate() {
  * Render the full dashboard view.
  */
 export async function renderDashboard() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
 
   // Combine calendar events and manual tasks
   const allEvents = [...calendarEvents];
@@ -47,7 +47,7 @@ export async function renderDashboard() {
 
   // Get today's events
   const todayEvents = allEvents.filter(e => {
-    const eventDate = new Date(e.start).toISOString().split('T')[0];
+    const eventDate = getLocalDateString(e.start);
     return eventDate === todayStr;
   });
 
@@ -56,7 +56,7 @@ export async function renderDashboard() {
   setTrackedTasks(tasks || {});
   const sessions = await window.tracker.getAllSessions();
   const todaySessions = (sessions || []).filter(s => {
-    return new Date(s.startTime).toISOString().split('T')[0] === todayStr;
+    return getLocalDateString(s.startTime) === todayStr;
   });
 
   // Stat cards

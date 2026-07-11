@@ -27,3 +27,18 @@ export function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+/**
+ * Get the local date string in YYYY-MM-DD format for a given Date object or date value.
+ * @param {Date|string|number} [date]
+ * @returns {string} e.g. "2026-07-11"
+ */
+export function getLocalDateString(date) {
+  const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : (date || new Date());
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+

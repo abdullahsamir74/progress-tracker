@@ -8,6 +8,7 @@ import {
 import { createTaskItem } from '../components/task-item.js';
 import { openAddTaskModal } from '../components/modals.js';
 import { initDragAndDrop } from '../components/drag-drop.js';
+import { getLocalDateString } from '../utils.js';
 
 /**
  * Render the schedule view (filters + event list).
@@ -37,7 +38,7 @@ export async function renderSchedule() {
  */
 async function renderScheduleList(filter) {
   const taskListEl = document.getElementById('schedule-task-list');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const now = new Date();
 
   // Combine calendar events and manual tasks
@@ -61,7 +62,7 @@ async function renderScheduleList(filter) {
 
   // Apply filter
   if (filter === 'today') {
-    allItems = allItems.filter(e => new Date(e.start).toISOString().split('T')[0] === todayStr);
+    allItems = allItems.filter(e => getLocalDateString(e.start) === todayStr);
   } else if (filter === 'upcoming') {
     allItems = allItems.filter(e => new Date(e.start) >= now);
   } else if (filter === 'past') {
@@ -88,7 +89,7 @@ async function renderScheduleList(filter) {
   // Group by date
   const groups = {};
   allItems.forEach(item => {
-    const dateKey = new Date(item.start).toISOString().split('T')[0];
+    const dateKey = getLocalDateString(item.start);
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push(item);
   });

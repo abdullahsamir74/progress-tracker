@@ -3,6 +3,7 @@
    ======================================== */
 
 import { setTrackedTasks, setCustomProjects, renderCurrentView } from '../state.js';
+import { getLocalDateString } from '../utils.js';
 
 // ---- Init ----
 export function initModals() {
@@ -27,7 +28,7 @@ export function initModals() {
 
 // ---- Add Task Modal ----
 export function openAddTaskModal() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   document.getElementById('task-date').value = today;
   document.getElementById('task-time').value = '09:00';
   document.getElementById('task-name').value = '';

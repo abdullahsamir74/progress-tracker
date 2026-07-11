@@ -2,7 +2,7 @@
    VIEW — Timer
    ======================================== */
 
-import { formatDuration, escapeHtml } from '../utils.js';
+import { formatDuration, escapeHtml, getLocalDateString } from '../utils.js';
 import {
   calendarEvents, trackedTasks, setTrackedTasks,
   selectedTimerTask, setSelectedTimerTask,
@@ -247,9 +247,9 @@ function renderTimerTaskList() {
  */
 async function renderTodaySessions() {
   const sessions = await window.tracker.getAllSessions();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const todaySessions = (sessions || []).filter(s => {
-    return new Date(s.startTime).toISOString().split('T')[0] === todayStr;
+    return getLocalDateString(s.startTime) === todayStr;
   });
 
   const listEl = document.getElementById('timer-session-list');

@@ -1,5 +1,14 @@
 const Store = require('electron-store').default;
 
+function getLocalDateString(date) {
+  const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : (date || new Date());
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 class TrackingService {
   constructor() {
     this.store = new Store({
@@ -156,12 +165,12 @@ class TrackingService {
     // Daily breakdown
     const dailyData = {};
     for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
-      const key = d.toISOString().split('T')[0];
+      const key = getLocalDateString(d);
       dailyData[key] = { date: key, trackedMinutes: 0, estimatedMinutes: 0, sessionsCount: 0 };
     }
 
     for (const session of filteredSessions) {
-      const key = new Date(session.startTime).toISOString().split('T')[0];
+      const key = getLocalDateString(session.startTime);
       if (dailyData[key]) {
         dailyData[key].trackedMinutes += session.durationMinutes || 0;
         dailyData[key].sessionsCount += 1;
@@ -190,7 +199,7 @@ class TrackingService {
 
     // Streak calculation
     let streak = 0;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const sortedDays = Object.keys(dailyData).sort().reverse();
     for (const day of sortedDays) {
       if (dailyData[day].sessionsCount > 0) {
