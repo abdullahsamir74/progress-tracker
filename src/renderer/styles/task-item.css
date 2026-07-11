@@ -123,6 +123,10 @@
   background: rgba(124, 110, 240, 0.15);
   color: var(--accent-primary);
 }
+.task-action-btn-danger:hover {
+  background: rgba(255, 107, 138, 0.15);
+  color: #ff6b8a;
+}
 .task-action-btn:disabled,
 .task-action-btn.disabled {
   opacity: 0.3;

@@ -393,6 +393,43 @@
     </div>
   </div>
 
+  <!-- Edit Task Modal -->
+  <div class="modal-overlay" id="edit-task-modal-overlay" style="display: none;">
+    <div class="modal glass" id="modal-edit-task">
+      <div class="modal-header">
+        <h2>Edit Task</h2>
+        <button class="btn btn-ghost btn-sm" id="btn-edit-task-close">✕</button>
+      </div>
+      <form id="form-edit-task">
+        <input type="hidden" id="edit-task-id">
+        <input type="hidden" id="edit-task-is-manual">
+        <div class="form-group">
+          <label for="edit-task-name">Task Name</label>
+          <input type="text" id="edit-task-name" placeholder="e.g. Chapter 8 — Arrays" required>
+          <small id="edit-task-calendar-notice" style="display: none; color: var(--text-muted); font-size: 11px; margin-top: 4px;">Calendar task: Name, date, and time are sync'd from GNOME Calendar.</small>
+        </div>
+        <div class="form-row" id="edit-task-time-row">
+          <div class="form-group">
+            <label for="edit-task-date">Date</label>
+            <input type="date" id="edit-task-date" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-task-time">Time</label>
+            <input type="time" id="edit-task-time" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-task-estimate">Estimated Duration (minutes)</label>
+          <input type="number" id="edit-task-estimate" placeholder="60" min="1" max="480">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="btn-edit-task-cancel">Cancel</button>
+          <button type="submit" class="btn btn-accent">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Estimate Modal -->
   <div class="modal-overlay" id="estimate-modal-overlay" style="display: none;">
     <div class="modal glass modal-sm" id="modal-estimate">

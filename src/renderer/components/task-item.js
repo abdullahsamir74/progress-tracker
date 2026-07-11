@@ -8,7 +8,8 @@ import {
   selectedTimerTask, setSelectedTimerTask,
 } from '../state.js';
 import { switchView, renderCurrentView } from '../state.js';
-import { openEstimateModal } from './modals.js';
+import { openEstimateModal, openEditTaskModal } from './modals.js';
+import { showConfirmDialog } from './confirm-dialog.js';
 
 /**
  * Create a single task-item DOM element.
@@ -53,6 +54,12 @@ export function createTaskItem(event, draggable = false, timerState = null) {
       <button class="task-action-btn" title="Set estimate" data-action="estimate" data-task-id="${event.id}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </button>
+      <button class="task-action-btn" title="Edit task" data-action="edit" data-task-id="${event.id}" data-task-name="${escapeHtml(event.summary)}" data-task-start="${event.start || ''}" data-task-estimate="${estimate || ''}" data-task-manual="${event.isManual || false}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="task-action-btn task-action-btn-danger" title="Delete task" data-action="delete" data-task-id="${event.id}" data-task-name="${escapeHtml(event.summary)}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
       <button class="task-action-btn ${isCompleted ? 'disabled' : ''}" title="${isCompleted ? 'Task completed' : (isCurrentTaskTiming ? 'Pause timer' : 'Start timer')}" data-action="start-timer" data-task-id="${event.id}" data-task-name="${escapeHtml(event.summary)}" data-estimate="${estimate || ''}" ${isCompleted ? 'disabled' : ''}>
         ${isCurrentTaskTiming ?
           `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>` :
@@ -88,6 +95,25 @@ export function createTaskItem(event, draggable = false, timerState = null) {
       const action = btn.dataset.action;
       if (action === 'estimate') {
         openEstimateModal(btn.dataset.taskId, estimate);
+      } else if (action === 'edit') {
+        openEditTaskModal({
+          id: btn.dataset.taskId,
+          name: btn.dataset.taskName,
+          start: btn.dataset.taskStart,
+          estimate: btn.dataset.taskEstimate ? parseInt(btn.dataset.taskEstimate) : null,
+          isManual: btn.dataset.taskManual === 'true',
+        });
+      } else if (action === 'delete') {
+        const taskName = btn.dataset.taskName || 'this task';
+        showConfirmDialog({
+          title: 'Delete Task?',
+          message: `Are you sure you want to delete "<strong>${taskName}</strong>"? This will remove its tracked data, estimates, and completion status. This cannot be undone.`,
+          confirmText: 'Delete Task',
+          onConfirm: async () => {
+            await window.tracker.deleteTask(btn.dataset.taskId);
+            setTrackedTasks(await window.tracker.getTasks());
+          },
+        });
       } else if (action === 'start-timer' && !isCompleted) {
         // Check if timer is already running for this task
         const currentTimerState = await window.tracker.getTimerState();

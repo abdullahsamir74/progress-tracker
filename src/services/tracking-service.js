@@ -50,6 +50,17 @@ class TrackingService {
     const tasks = this.store.get('tasks', {});
     delete tasks[taskId];
     this.store.set('tasks', tasks);
+
+    // Also delete any sessions associated with this task
+    const sessions = this.store.get('sessions', []);
+    const updatedSessions = sessions.filter(s => s.taskId !== taskId);
+    this.store.set('sessions', updatedSessions);
+
+    // Also clean up taskOrder
+    const taskOrder = this.store.get('taskOrder', []);
+    const updatedTaskOrder = taskOrder.filter(id => id !== taskId);
+    this.store.set('taskOrder', updatedTaskOrder);
+
     return true;
   }
 

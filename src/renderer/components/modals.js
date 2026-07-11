@@ -21,9 +21,17 @@ export function initModals() {
     if (e.target === document.getElementById('estimate-modal-overlay')) closeModals();
   });
 
+  // Edit task modal
+  document.getElementById('btn-edit-task-close').addEventListener('click', closeModals);
+  document.getElementById('btn-edit-task-cancel').addEventListener('click', closeModals);
+  document.getElementById('edit-task-modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('edit-task-modal-overlay')) closeModals();
+  });
+
   // Form submissions
   document.getElementById('form-add-task').addEventListener('submit', handleAddTask);
   document.getElementById('form-estimate').addEventListener('submit', handleSetEstimate);
+  document.getElementById('form-edit-task').addEventListener('submit', handleEditTask);
 }
 
 // ---- Add Task Modal ----
@@ -43,10 +51,57 @@ export function openEstimateModal(taskId, currentEstimate) {
   document.getElementById('estimate-modal-overlay').style.display = 'flex';
 }
 
+// ---- Edit Task Modal ----
+export function openEditTaskModal(task) {
+  document.getElementById('edit-task-id').value = task.id;
+  document.getElementById('edit-task-is-manual').value = task.isManual ? 'true' : 'false';
+
+  const nameInput = document.getElementById('edit-task-name');
+  const dateInput = document.getElementById('edit-task-date');
+  const timeInput = document.getElementById('edit-task-time');
+  const estimateInput = document.getElementById('edit-task-estimate');
+  const calendarNotice = document.getElementById('edit-task-calendar-notice');
+
+  nameInput.value = task.name || '';
+  estimateInput.value = task.estimate || '';
+
+  if (task.start) {
+    const d = new Date(task.start);
+    if (!isNaN(d.getTime())) {
+      dateInput.value = getLocalDateString(d);
+
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      timeInput.value = `${hours}:${minutes}`;
+    } else {
+      dateInput.value = '';
+      timeInput.value = '';
+    }
+  } else {
+    dateInput.value = '';
+    timeInput.value = '';
+  }
+
+  if (task.isManual) {
+    nameInput.disabled = false;
+    dateInput.disabled = false;
+    timeInput.disabled = false;
+    calendarNotice.style.display = 'none';
+  } else {
+    nameInput.disabled = true;
+    dateInput.disabled = true;
+    timeInput.disabled = true;
+    calendarNotice.style.display = 'block';
+  }
+
+  document.getElementById('edit-task-modal-overlay').style.display = 'flex';
+}
+
 // ---- Close All Modals ----
 export function closeModals() {
   document.getElementById('modal-overlay').style.display = 'none';
   document.getElementById('estimate-modal-overlay').style.display = 'none';
+  document.getElementById('edit-task-modal-overlay').style.display = 'none';
 }
 
 // ---- Handlers ----
@@ -91,6 +146,41 @@ async function handleSetEstimate(e) {
   await window.tracker.setEstimate(taskId, minutes);
   setTrackedTasks(await window.tracker.getTasks());
 
+  closeModals();
+  renderCurrentView();
+}
+
+async function handleEditTask(e) {
+  e.preventDefault();
+
+  const id = document.getElementById('edit-task-id').value;
+  const isManual = document.getElementById('edit-task-is-manual').value === 'true';
+  const name = document.getElementById('edit-task-name').value.trim();
+  const date = document.getElementById('edit-task-date').value;
+  const time = document.getElementById('edit-task-time').value;
+  const estimate = parseInt(document.getElementById('edit-task-estimate').value) || 0;
+
+  if (isManual) {
+    if (!name || !date || !time) return;
+    const startDate = new Date(`${date}T${time}`);
+    const endDate = new Date(startDate.getTime() + (estimate || 60) * 60000);
+
+    const task = {
+      id,
+      name,
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      estimateMinutes: estimate || null,
+      isManual: true,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await window.tracker.saveTask(task);
+  } else {
+    await window.tracker.setEstimate(id, estimate || null);
+  }
+
+  setTrackedTasks(await window.tracker.getTasks());
   closeModals();
   renderCurrentView();
 }
