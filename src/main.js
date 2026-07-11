@@ -195,4 +195,29 @@ function registerIpcHandlers() {
   ipcMain.handle('get-task-order', () => {
     return trackingService.getTaskOrder();
   });
+
+  // Projects
+  ipcMain.handle('get-projects', () => {
+    return trackingService.getProjects();
+  });
+
+  ipcMain.handle('save-project', (event, project) => {
+    return trackingService.saveProject(project);
+  });
+
+  ipcMain.handle('delete-project', (event, projectId) => {
+    return trackingService.deleteProject(projectId);
+  });
+
+  ipcMain.handle('assign-task-to-project', (event, taskId, projectId) => {
+    return trackingService.assignTaskToProject(taskId, projectId);
+  });
+
+  ipcMain.handle('save-project-order', (event, orderedIds) => {
+    return trackingService.saveProjectOrder(orderedIds);
+  });
+
+  ipcMain.handle('get-project-order', () => {
+    return trackingService.getProjectOrder();
+  });
 }

@@ -12,6 +12,7 @@ Progress Tracker is a production-grade, context-isolated desktop time-tracking a
 
 *   **Native GNOME Calendar Sync**: Watches local Evolution Data Server calendar stores (read-only) via `fs.watch` and live-reloads events when changed inside the system calendar app.
 *   **Custom Drag-and-Drop Engine**: A custom pointer-event-based sorting algorithm built specifically to bypass layout constraints in Chromium WebViews. Allows smooth card-wide vertical reordering with instant database persistence.
+*   **Kanban Projects & Accordion Swimlanes**: A custom projects manager that organizes tasks into vertical collapsible accordion cards. Users can assign tasks to projects by dragging and dropping them, and reorder the display sequence of projects using dedicated drag handles (⠿) with instant persistence.
 *   **Active Session Manager**: Toggles play/pause state for tasks directly from dashboards. Features auto-save logic that halts active timers and logs task progress if the user switches tasks.
 *   **Exit Protection (Auto-Save)**: Intercepts application window close events to automatically stop running timers and save active sessions to the local database, ensuring zero progress loss.
 *   **Localized Storage & Security**: Leverages a secure preload context bridge to isolate main process I/O. Custom metadata, time estimates, and session histories are stored in a localized config database (`electron-store`).

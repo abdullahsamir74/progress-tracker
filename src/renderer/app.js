@@ -5,10 +5,13 @@
 // State
 let calendarEvents = [];
 let trackedTasks = {};
+let customProjects = {};
+let expandedProjects = {};
 let currentView = 'dashboard';
 let selectedTimerTask = null;
 let analyticsChart = null;
 let taskOrder = [];
+let projectOrder = [];
 
 // ---- Initialization ----
 document.addEventListener('DOMContentLoaded', async () => {
@@ -18,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTimerControls();
   initAnalytics();
   initResetButtons();
+  initProjects();
 
   await loadData();
   renderCurrentView();
@@ -42,15 +46,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ---- Data Loading ----
 async function loadData() {
   try {
-    const [events, tasks, timerState] = await Promise.all([
+    const [events, tasks, timerState, projects] = await Promise.all([
       window.tracker.getCalendarEvents(),
       window.tracker.getTasks(),
       window.tracker.getTimerState(),
+      window.tracker.getProjects(),
     ]);
 
     calendarEvents = events || [];
     trackedTasks = tasks || {};
+    customProjects = projects || {};
     taskOrder = (await window.tracker.getTaskOrder()) || [];
+    projectOrder = (await window.tracker.getProjectOrder()) || [];
 
     if (timerState && timerState.running) {
       updateTimerDisplay(timerState);
@@ -99,6 +106,7 @@ async function renderCurrentView() {
     case 'schedule': await renderSchedule(); break;
     case 'timer': await renderTimerView(); break;
     case 'analytics': await renderAnalytics(); break;
+    case 'projects': await renderProjects(); break;
   }
 }
 
@@ -326,6 +334,9 @@ function createTaskItem(event, draggable = false, timerState = null) {
 
   const isCurrentTaskTiming = timerState && timerState.running && timerState.taskId === event.id && !timerState.paused;
 
+  const project = task.projectId ? customProjects[task.projectId] : null;
+  const projectBadge = project ? `<span class="task-project-badge" style="color: ${project.color}; border-color: ${project.color};">${escapeHtml(project.name)}</span>` : '';
+
   item.innerHTML = `
     ${draggable ? `<div class="drag-handle" title="Drag to reorder">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
@@ -340,6 +351,7 @@ function createTaskItem(event, draggable = false, timerState = null) {
         ${event.calendarName ? ` · ${escapeHtml(event.calendarName)}` : ''}
       </div>
     </div>
+    ${projectBadge}
     ${estimate ? `<span class="task-badge estimate">${formatDuration(estimate)}</span>` : ''}
     ${tracked > 0 ? `<span class="task-badge tracked">${formatDuration(tracked)} tracked</span>` : ''}
     <div class="task-actions">
@@ -1084,3 +1096,399 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+// ---- Projects View Controller ----
+function initProjects() {
+  const newProjBtn = document.getElementById('btn-new-project');
+  const projModalOverlay = document.getElementById('project-modal-overlay');
+  const closeProjBtn = document.getElementById('btn-project-close');
+  const cancelProjBtn = document.getElementById('btn-project-cancel');
+  const formProj = document.getElementById('form-project');
+  const resetProjBtn = document.getElementById('btn-reset-projects');
+
+  if (newProjBtn) {
+    newProjBtn.addEventListener('click', () => {
+      document.getElementById('project-modal-title').textContent = 'Create Project';
+      document.getElementById('project-id').value = '';
+      document.getElementById('project-name').value = '';
+      const radios = document.getElementsByName('project-color');
+      if (radios.length > 0) radios[0].checked = true;
+      projModalOverlay.style.display = 'flex';
+      
+      // Force input focus in Electron
+      setTimeout(() => {
+        const input = document.getElementById('project-name');
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 50);
+    });
+  }
+
+  const closeProjModal = () => {
+    projModalOverlay.style.display = 'none';
+  };
+
+  if (closeProjBtn) closeProjBtn.addEventListener('click', closeProjModal);
+  if (cancelProjBtn) cancelProjBtn.addEventListener('click', closeProjModal);
+  if (projModalOverlay) {
+    projModalOverlay.addEventListener('click', (e) => {
+      if (e.target === projModalOverlay) closeProjModal();
+    });
+  }
+
+  if (formProj) {
+    formProj.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('project-id').value;
+      const name = document.getElementById('project-name').value;
+      const color = document.querySelector('input[name="project-color"]:checked').value;
+
+      const project = { name, color };
+      if (id) project.id = id;
+
+      await window.tracker.saveProject(project);
+      customProjects = await window.tracker.getProjects();
+      closeProjModal();
+      renderProjects();
+    });
+  }
+
+  if (resetProjBtn) {
+    resetProjBtn.addEventListener('click', () => showConfirmDialog());
+  }
+}
+
+async function renderProjects() {
+  const projectsStack = document.getElementById('projects-list-stack');
+  const unassignedPool = document.getElementById('unassigned-tasks-pool');
+  const unassignedCountBadge = document.getElementById('unassigned-tasks-count');
+
+  if (!projectsStack || !unassignedPool) return;
+
+  projectsStack.innerHTML = '';
+  unassignedPool.innerHTML = '';
+
+  let timerState = null;
+  try {
+    timerState = await window.tracker.getTimerState();
+  } catch (e) {}
+
+  const projects = Object.values(customProjects);
+  // Sort projects according to projectOrder configuration
+  projects.sort((a, b) => {
+    const idxA = projectOrder.indexOf(a.id);
+    const idxB = projectOrder.indexOf(b.id);
+    if (idxA === -1 && idxB === -1) return 0;
+    if (idxA === -1) return 1;
+    if (idxB === -1) return -1;
+    return idxA - idxB;
+  });
+
+  const projectTasks = {};
+  projects.forEach(p => {
+    projectTasks[p.id] = [];
+  });
+
+  const unassignedEvents = [];
+
+  calendarEvents.forEach(event => {
+    const task = trackedTasks[event.id] || {};
+    if (task.projectId && customProjects[task.projectId]) {
+      projectTasks[task.projectId].push(event);
+    } else {
+      unassignedEvents.push(event);
+    }
+  });
+
+  if (projects.length === 0) {
+    const emptyBoard = document.createElement('div');
+    emptyBoard.className = 'empty-state';
+    emptyBoard.style.flex = '1';
+    emptyBoard.style.height = '100%';
+    emptyBoard.innerHTML = `
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+      <p>No projects created yet</p>
+      <span>Click "Create Project" above to start grouping your tasks</span>
+    `;
+    projectsStack.appendChild(emptyBoard);
+  } else {
+    projects.forEach(project => {
+      const card = document.createElement('div');
+      const isExpanded = expandedProjects[project.id] === true;
+      card.className = `project-card ${isExpanded ? 'expanded' : ''}`;
+      card.dataset.projectId = project.id;
+
+      card.innerHTML = `
+        <div class="project-card-header">
+          <div class="project-drag-handle" title="Drag to reorder projects">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+              <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+              <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+            </svg>
+          </div>
+          <div class="project-chevron">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+          <div class="project-card-info">
+            <div class="project-color-dot" style="background: ${project.color};"></div>
+            <span class="project-title">${escapeHtml(project.name)}</span>
+            <span class="project-task-count">${projectTasks[project.id].length} tasks</span>
+          </div>
+          <button class="btn-delete-project" data-project-id="${project.id}" title="Delete project">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+        <div class="project-card-body">
+          <div class="project-task-list" data-project-id="${project.id}">
+            <!-- Assigned tasks -->
+          </div>
+        </div>
+      `;
+
+      const listContainer = card.querySelector('.project-task-list');
+      const events = projectTasks[project.id];
+      if (events.length === 0) {
+        const emptyCol = document.createElement('div');
+        emptyCol.className = 'empty-state small';
+        emptyCol.style.padding = 'var(--space-md) 0';
+        emptyCol.innerHTML = `<p style="font-size:12px;">Drag tasks here</p>`;
+        listContainer.appendChild(emptyCol);
+      } else {
+        events.forEach(event => {
+          const cardEl = createTaskItem(event, false, timerState);
+          cardEl.setAttribute('draggable', 'true');
+          listContainer.appendChild(cardEl);
+        });
+      }
+
+      card.querySelector('.project-card-header').addEventListener('click', (e) => {
+        if (e.target.closest('.btn-delete-project') || e.target.closest('.project-drag-handle')) return;
+        const expanded = card.classList.toggle('expanded');
+        expandedProjects[project.id] = expanded;
+      });
+
+      card.querySelector('.btn-delete-project').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (confirm(`Are you sure you want to delete project "${project.name}"? Tasks in it will return to Unassigned.`)) {
+          await window.tracker.deleteProject(project.id);
+          delete expandedProjects[project.id];
+          customProjects = await window.tracker.getProjects();
+          trackedTasks = await window.tracker.getTasks();
+          renderProjects();
+        }
+      });
+
+      projectsStack.appendChild(card);
+    });
+  }
+
+  unassignedCountBadge.textContent = unassignedEvents.length;
+  if (unassignedEvents.length === 0) {
+    unassignedPool.innerHTML = `
+      <div class="empty-state small" style="margin-top:var(--space-xl);">
+        <p>All tasks assigned!</p>
+      </div>
+    `;
+  } else {
+    unassignedEvents.forEach(event => {
+      const card = createTaskItem(event, false, timerState);
+      card.setAttribute('draggable', 'true');
+      unassignedPool.appendChild(card);
+    });
+  }
+
+  initProjectsDragAndDrop();
+  initProjectsListDragAndDrop(projectsStack);
+}
+
+function initProjectsDragAndDrop() {
+  const draggables = document.querySelectorAll('#view-projects .task-item[draggable="true"]');
+  const projectCards = document.querySelectorAll('#view-projects .project-card');
+  const unassignedPool = document.getElementById('unassigned-tasks-pool');
+
+  draggables.forEach(draggable => {
+    draggable.addEventListener('dragstart', (e) => {
+      draggable.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', draggable.dataset.taskId);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    draggable.addEventListener('dragend', () => {
+      draggable.classList.remove('dragging');
+    });
+  });
+
+  projectCards.forEach(card => {
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+
+    card.addEventListener('dragleave', () => {
+      card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const taskId = e.dataTransfer.getData('text/plain');
+      const projectId = card.dataset.projectId;
+
+      if (taskId) {
+        await window.tracker.assignTaskToProject(taskId, projectId);
+        trackedTasks = await window.tracker.getTasks();
+        renderProjects();
+      }
+    });
+  });
+
+  if (unassignedPool) {
+    unassignedPool.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      unassignedPool.classList.add('drag-over');
+    });
+
+    unassignedPool.addEventListener('dragleave', () => {
+      unassignedPool.classList.remove('drag-over');
+    });
+
+    unassignedPool.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      unassignedPool.classList.remove('drag-over');
+      const taskId = e.dataTransfer.getData('text/plain');
+
+      if (taskId) {
+        await window.tracker.assignTaskToProject(taskId, null);
+        trackedTasks = await window.tracker.getTasks();
+        renderProjects();
+      }
+    });
+  }
+}
+
+function initProjectsListDragAndDrop(listEl) {
+  if (listEl.dataset.dragInitDone === 'true') return;
+  listEl.dataset.dragInitDone = 'true';
+
+  let draggedItem = null;
+  let placeholder = null;
+  let offsetY = 0;
+  let isDragging = false;
+
+  function getVisualChildren() {
+    return [...listEl.children].filter(el => 
+      el !== draggedItem && 
+      !el.classList.contains('drag-placeholder') && 
+      el.classList.contains('project-card')
+    );
+  }
+
+  function onMouseDown(e) {
+    const handle = e.target.closest('.project-drag-handle');
+    if (!handle) return;
+
+    const item = handle.closest('.project-card');
+    if (!item) return;
+
+    e.preventDefault();
+    draggedItem = item;
+
+    const rect = item.getBoundingClientRect();
+    offsetY = e.clientY - rect.top;
+
+    placeholder = document.createElement('div');
+    placeholder.className = 'project-card drag-placeholder';
+    placeholder.style.height = rect.height + 'px';
+    placeholder.style.marginBottom = 'var(--space-md)';
+
+    item.classList.add('dragging');
+    item.style.position = 'fixed';
+    item.style.width = rect.width + 'px';
+    item.style.top = rect.top + 'px';
+    item.style.left = rect.left + 'px';
+    item.style.zIndex = '1000';
+    item.style.pointerEvents = 'none';
+
+    item.parentNode.insertBefore(placeholder, item);
+
+    isDragging = true;
+    document.body.style.cursor = 'grabbing';
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  function onMouseMove(e) {
+    if (!isDragging || !draggedItem) return;
+    draggedItem.style.top = (e.clientY - offsetY) + 'px';
+
+    const elements = getVisualChildren();
+    let target = null;
+    for (const el of elements) {
+      const rect = el.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        target = el;
+        break;
+      }
+    }
+
+    if (placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    if (target) {
+      target.parentNode.insertBefore(placeholder, target);
+    } else {
+      listEl.appendChild(placeholder);
+    }
+  }
+
+  function onMouseUp() {
+    if (!isDragging || !draggedItem) return;
+
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+
+    if (placeholder.parentNode) {
+      placeholder.parentNode.insertBefore(draggedItem, placeholder);
+      placeholder.parentNode.removeChild(placeholder);
+    }
+
+    draggedItem.classList.remove('dragging');
+    draggedItem.style.position = '';
+    draggedItem.style.width = '';
+    draggedItem.style.top = '';
+    draggedItem.style.left = '';
+    draggedItem.style.zIndex = '';
+    draggedItem.style.pointerEvents = '';
+
+    saveCurrentProjectOrder(listEl);
+
+    draggedItem = null;
+    placeholder = null;
+    isDragging = false;
+  }
+
+  listEl.addEventListener('mousedown', onMouseDown);
+}
+
+async function saveCurrentProjectOrder(listEl) {
+  const items = listEl.querySelectorAll('.project-card[data-project-id]');
+  const orderedIds = [...items].map(el => el.dataset.projectId);
+  projectOrder = orderedIds;
+  await window.tracker.saveProjectOrder(orderedIds);
+}
+

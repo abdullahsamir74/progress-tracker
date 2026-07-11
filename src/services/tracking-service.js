@@ -3,13 +3,15 @@ const Store = require('electron-store').default;
 class TrackingService {
   constructor() {
     this.store = new Store({
-      name: 'tracking-data',
-      defaults: {
-        tasks: {},
-        sessions: [],
-      },
-    });
-  }
+       name: 'tracking-data',
+       defaults: {
+         tasks: {},
+         sessions: [],
+         projects: {},
+         projectOrder: [],
+       },
+     });
+   }
 
   /**
    * Get all tasks with their metadata (estimates, status, etc.)
@@ -222,6 +224,8 @@ class TrackingService {
     this.store.set('tasks', {});
     this.store.set('sessions', []);
     this.store.set('taskOrder', []);
+    this.store.set('projects', {});
+    this.store.set('projectOrder', []);
     return true;
   }
 
@@ -238,6 +242,87 @@ class TrackingService {
    */
   getTaskOrder() {
     return this.store.get('taskOrder', []);
+  }
+
+  /**
+   * Get all custom projects
+   */
+  getProjects() {
+    return this.store.get('projects', {});
+  }
+
+  /**
+   * Save or update a project
+   */
+  saveProject(project) {
+    const projects = this.store.get('projects', {});
+    if (!project.id) {
+      project.id = 'proj_' + Math.random().toString(36).substr(2, 9);
+      project.createdAt = new Date().toISOString();
+    }
+    projects[project.id] = {
+      ...projects[project.id],
+      ...project,
+      updatedAt: new Date().toISOString(),
+    };
+    this.store.set('projects', projects);
+    return projects[project.id];
+  }
+
+  /**
+   * Delete a project
+   */
+  deleteProject(projectId) {
+    const projects = this.store.get('projects', {});
+    delete projects[projectId];
+    this.store.set('projects', projects);
+
+    // Unassign tasks belonging to this project
+    const tasks = this.store.get('tasks', {});
+    let updated = false;
+    for (const taskId in tasks) {
+      if (tasks[taskId].projectId === projectId) {
+        tasks[taskId].projectId = null;
+        tasks[taskId].updatedAt = new Date().toISOString();
+        updated = true;
+      }
+    }
+    if (updated) {
+      this.store.set('tasks', tasks);
+    }
+    return true;
+  }
+
+  /**
+   * Assign a task to a project
+   */
+  assignTaskToProject(taskId, projectId) {
+    const tasks = this.store.get('tasks', {});
+    if (!tasks[taskId]) {
+      tasks[taskId] = {
+        id: taskId,
+        createdAt: new Date().toISOString(),
+      };
+    }
+    tasks[taskId].projectId = projectId;
+    tasks[taskId].updatedAt = new Date().toISOString();
+    this.store.set('tasks', tasks);
+    return tasks[taskId];
+  }
+
+  /**
+   * Save custom project order
+   */
+  saveProjectOrder(orderedIds) {
+    this.store.set('projectOrder', orderedIds);
+    return true;
+  }
+
+  /**
+   * Get custom project order
+   */
+  getProjectOrder() {
+    return this.store.get('projectOrder', []);
   }
 }
 

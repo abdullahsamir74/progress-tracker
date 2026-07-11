@@ -41,4 +41,12 @@ contextBridge.exposeInMainWorld('tracker', {
   resetAll: () => ipcRenderer.invoke('reset-all'),
   saveTaskOrder: (orderedIds) => ipcRenderer.invoke('save-task-order', orderedIds),
   getTaskOrder: () => ipcRenderer.invoke('get-task-order'),
+
+  // Projects
+  getProjects: () => ipcRenderer.invoke('get-projects'),
+  saveProject: (project) => ipcRenderer.invoke('save-project', project),
+  deleteProject: (projectId) => ipcRenderer.invoke('delete-project', projectId),
+  assignTaskToProject: (taskId, projectId) => ipcRenderer.invoke('assign-task-to-project', taskId, projectId),
+  saveProjectOrder: (orderedIds) => ipcRenderer.invoke('save-project-order', orderedIds),
+  getProjectOrder: () => ipcRenderer.invoke('get-project-order'),
 });
