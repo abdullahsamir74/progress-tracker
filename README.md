@@ -1,7 +1,7 @@
 # Progress Tracker
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-blue.svg)](https://nodejs.org/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D%2024.18.0-blue.svg)](https://nodejs.org/)
 [![Platform](https://img.shields.io/badge/platform-linux-lightgrey.svg)](https://www.gnome.org/)
 
 Progress Tracker is a production-grade, context-isolated desktop time-tracking and productivity dashboard built on Electron, engineered specifically for Linux environments running the GNOME Desktop. It establishes a secure, non-destructive bridge to the system's Evolution Data Server (EDS), allowing users to sync their local calendar schedule, prioritize tasks via a custom pointer-event-based drag-and-drop mechanism, monitor session durations with a precision timer, and evaluate trends via localized analytics.
@@ -47,8 +47,8 @@ To guarantee application security, the main process exposes a restricted set of 
 ## 📥 Installation & Setup
 
 ### Prerequisites
-*   Node.js >= v18.0.0
-*   npm >= v9.0.0
+*   Node.js >= v24.18.0
+*   npm >= v11.16.0
 *   Evolution Data Server (typically pre-installed on GNOME distributions)
 
 ### Installation Steps

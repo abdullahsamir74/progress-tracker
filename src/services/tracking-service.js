@@ -12,15 +12,15 @@ function getLocalDateString(date) {
 class TrackingService {
   constructor() {
     this.store = new Store({
-       name: 'tracking-data',
-       defaults: {
-         tasks: {},
-         sessions: [],
-         projects: {},
-         projectOrder: [],
-       },
-     });
-   }
+      name: 'tracking-data',
+      defaults: {
+        tasks: {},
+        sessions: [],
+        projects: {},
+        projectOrder: [],
+      },
+    });
+  }
 
   /**
    * Get all tasks with their metadata (estimates, status, etc.)
