@@ -51,4 +51,9 @@ contextBridge.exposeInMainWorld('tracker', {
   assignTaskToProject: (taskId, projectId) => ipcRenderer.invoke('assign-task-to-project', taskId, projectId),
   saveProjectOrder: (orderedIds) => ipcRenderer.invoke('save-project-order', orderedIds),
   getProjectOrder: () => ipcRenderer.invoke('get-project-order'),
+
+  // Habits
+  getHabits: () => ipcRenderer.invoke('get-habits'),
+  saveHabit: (habit) => ipcRenderer.invoke('save-habit', habit),
+  deleteHabit: (habitId) => ipcRenderer.invoke('delete-habit', habitId),
 });

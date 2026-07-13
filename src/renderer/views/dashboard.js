@@ -2,7 +2,7 @@
    VIEW — Dashboard
    ======================================== */
 
-import { formatDuration, getLocalDateString } from '../utils.js';
+import { formatDuration, getLocalDateString, getCombinedEvents } from '../utils.js';
 import {
   calendarEvents, trackedTasks, setTrackedTasks,
   setCalendarEvents,
@@ -26,24 +26,7 @@ export async function renderDashboard() {
   const todayStr = getLocalDateString();
 
   // Combine calendar events and manual tasks
-  const allEvents = [...calendarEvents];
-  Object.values(trackedTasks).forEach(task => {
-    if (task.isManual) {
-      const exists = allEvents.some(item => item.id === task.id);
-      if (!exists) {
-        allEvents.push({
-          id: task.id,
-          summary: task.name || 'Untitled Task',
-          start: task.start || new Date().toISOString(),
-          end: task.end || null,
-          durationMinutes: task.estimateMinutes || 60,
-          calendarColor: '#7c6ef0',
-          calendarName: 'Manual',
-          isManual: true,
-        });
-      }
-    }
-  });
+  const allEvents = getCombinedEvents(calendarEvents, trackedTasks);
 
   // Get today's events
   const todayEvents = allEvents.filter(e => {

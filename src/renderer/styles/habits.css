@@ -1,0 +1,250 @@
+/* ========================================
+   HABITS VIEW — Custom Styles
+   ======================================== */
+
+.habits-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xl);
+  text-align: center;
+}
+
+.habits-month-nav h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 180px;
+  user-select: none;
+}
+
+.habits-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.habit-card {
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--bg-glass-border);
+  padding: var(--space-lg);
+  transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.habit-card:hover {
+  border-color: rgba(124, 110, 240, 0.2);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+}
+
+.habit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.habit-info-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.habit-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.habit-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.habit-stat-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  user-select: none;
+}
+
+.habit-stat-badge.success {
+  background: rgba(86, 214, 123, 0.1);
+  border: 1px solid rgba(86, 214, 123, 0.2);
+  color: var(--accent-green);
+}
+
+.habit-stat-badge.failure {
+  background: rgba(255, 107, 138, 0.1);
+  border: 1px solid rgba(255, 107, 138, 0.2);
+  color: var(--accent-pink);
+}
+
+.habit-stat-badge.streak {
+  background: rgba(249, 168, 38, 0.1);
+  border: 1px solid rgba(249, 168, 38, 0.2);
+  color: var(--accent-orange);
+}
+
+.habit-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.habit-action-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.habit-action-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.habit-action-btn.delete:hover {
+  background: rgba(255, 107, 138, 0.1);
+  color: var(--accent-pink);
+}
+
+.habit-days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.habit-day-circle {
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  border: 1.5px solid var(--bg-glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.habit-day-circle:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  transform: scale(1.08);
+}
+
+/* Day State: Success (Went Well) */
+.habit-day-circle.state-success {
+  background: rgba(86, 214, 123, 0.15);
+  border-color: var(--accent-green);
+  color: var(--text-primary);
+  box-shadow: 0 0 10px rgba(86, 214, 123, 0.15);
+  font-weight: 600;
+}
+
+.habit-day-circle.state-success:hover {
+  background: rgba(86, 214, 123, 0.25);
+  box-shadow: 0 0 14px rgba(86, 214, 123, 0.3);
+}
+
+/* Day State: Failure (Did Not Go Well) */
+.habit-day-circle.state-fail {
+  background: rgba(255, 107, 138, 0.15);
+  border-color: var(--accent-pink);
+  color: var(--text-primary);
+  box-shadow: 0 0 10px rgba(255, 107, 138, 0.15);
+  font-weight: 600;
+}
+
+.habit-day-circle.state-fail:hover {
+  background: rgba(255, 107, 138, 0.25);
+  box-shadow: 0 0 14px rgba(255, 107, 138, 0.3);
+}
+
+/* Legend section for guidelines */
+.habits-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  border-top: 1px solid var(--bg-glass-border);
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--bg-glass-border);
+}
+
+.legend-dot.success {
+  background: rgba(86, 214, 123, 0.2);
+  border-color: var(--accent-green);
+}
+
+.legend-dot.fail {
+  background: rgba(255, 107, 138, 0.2);
+  border-color: var(--accent-pink);
+}
+
+/* Custom tooltip styling logic */
+.habit-day-circle[title]::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--bg-glass-border);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all var(--transition-fast);
+  z-index: 10;
+  box-shadow: var(--shadow-sm);
+}
+
+.habit-day-circle:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}

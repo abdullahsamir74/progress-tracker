@@ -17,6 +17,7 @@ import { renderSchedule } from './views/schedule.js';
 import { initTimerControls, renderTimerView, updateTimerDisplay } from './views/timer.js';
 import { initAnalytics, renderAnalytics } from './views/analytics.js';
 import { initProjects, renderProjects } from './views/projects.js';
+import { initHabits, renderHabitsView } from './views/habits.js';
 
 // ---- Components ----
 import { initModals } from './components/modals.js';
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     timer: renderTimerView,
     analytics: renderAnalytics,
     projects: renderProjects,
+    habits: renderHabitsView,
   });
 
   // Init UI components
@@ -41,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAnalytics();
   initResetButtons();
   initProjects();
+  initHabits();
 
   // Load data & render
   await loadData();

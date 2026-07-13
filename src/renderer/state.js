@@ -7,6 +7,7 @@ export let calendarEvents = [];
 export let trackedTasks = {};
 export let customProjects = {};
 export let expandedProjects = {};
+export let habits = {};
 export let currentView = 'dashboard';
 export let selectedTimerTask = null;
 export let analyticsChart = null;
@@ -18,6 +19,7 @@ export function setCalendarEvents(val) { calendarEvents = val; }
 export function setTrackedTasks(val) { trackedTasks = val; }
 export function setCustomProjects(val) { customProjects = val; }
 export function setExpandedProjects(val) { expandedProjects = val; }
+export function setHabits(val) { habits = val; }
 export function setCurrentView(val) { currentView = val; }
 export function setSelectedTimerTask(val) { selectedTimerTask = val; }
 export function setAnalyticsChart(val) { analyticsChart = val; }
@@ -34,16 +36,18 @@ export function registerViewRenderers(renderers) {
 // ---- Data Loading ----
 export async function loadData() {
   try {
-    const [events, tasks, timerState, projects] = await Promise.all([
+    const [events, tasks, timerState, projects, habitsData] = await Promise.all([
       window.tracker.getCalendarEvents(),
       window.tracker.getTasks(),
       window.tracker.getTimerState(),
       window.tracker.getProjects(),
+      window.tracker.getHabits(),
     ]);
 
     calendarEvents = events || [];
     trackedTasks = tasks || {};
     customProjects = projects || {};
+    habits = habitsData || {};
     taskOrder = (await window.tracker.getTaskOrder()) || [];
     projectOrder = (await window.tracker.getProjectOrder()) || [];
 

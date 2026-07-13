@@ -42,3 +42,33 @@ export function getLocalDateString(date) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Combine calendar events and manual tasks from the store into a normalized array of event objects.
+ * @param {Array} calendarEvents
+ * @param {Object} trackedTasks
+ * @returns {Array} normalized events
+ */
+export function getCombinedEvents(calendarEvents, trackedTasks) {
+  const allEvents = [...(calendarEvents || [])];
+  
+  Object.values(trackedTasks || {}).forEach(task => {
+    if (task.isManual) {
+      const exists = allEvents.some(item => item.id === task.id);
+      if (!exists) {
+        allEvents.push({
+          id: task.id,
+          summary: task.name || 'Untitled Task',
+          start: task.start || new Date().toISOString(),
+          end: task.end || null,
+          durationMinutes: task.estimateMinutes || 60,
+          calendarColor: '#7c6ef0',
+          calendarName: 'Manual',
+          isManual: true,
+        });
+      }
+    }
+  });
+
+  return allEvents;
+}
+

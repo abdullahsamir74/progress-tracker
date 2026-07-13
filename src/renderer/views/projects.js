@@ -2,7 +2,7 @@
    VIEW — Projects
    ======================================== */
 
-import { escapeHtml } from '../utils.js';
+import { escapeHtml, getCombinedEvents } from '../utils.js';
 import {
   calendarEvents, trackedTasks, customProjects,
   expandedProjects, projectOrder,
@@ -73,26 +73,7 @@ export async function renderProjects() {
   });
 
   // Combine calendar events and manual tasks
-  const allEvents = [...calendarEvents];
-
-  // Add manual tasks from the store
-  Object.values(trackedTasks).forEach(task => {
-    if (task.isManual) {
-      const exists = allEvents.some(item => item.id === task.id);
-      if (!exists) {
-        allEvents.push({
-          id: task.id,
-          summary: task.name || 'Untitled Task',
-          start: task.start || new Date().toISOString(),
-          end: task.end || null,
-          durationMinutes: task.estimateMinutes || 60,
-          calendarColor: '#7c6ef0',
-          calendarName: 'Manual',
-          isManual: true,
-        });
-      }
-    }
-  });
+  const allEvents = getCombinedEvents(calendarEvents, trackedTasks);
 
   const unassignedEvents = [];
 

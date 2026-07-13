@@ -18,6 +18,7 @@ class TrackingService {
         sessions: [],
         projects: {},
         projectOrder: [],
+        habits: {},
       },
     });
   }
@@ -246,6 +247,7 @@ class TrackingService {
     this.store.set('taskOrder', []);
     this.store.set('projects', {});
     this.store.set('projectOrder', []);
+    this.store.set('habits', {});
     return true;
   }
 
@@ -376,6 +378,42 @@ class TrackingService {
    */
   getProjectOrder() {
     return this.store.get('projectOrder', []);
+  }
+
+  /**
+   * Get all habits
+   */
+  getHabits() {
+    return this.store.get('habits', {});
+  }
+
+  /**
+   * Save or update a habit
+   */
+  saveHabit(habit) {
+    const habits = this.store.get('habits', {});
+    if (!habit.id) {
+      habit.id = 'hab_' + Math.random().toString(36).substring(2, 11);
+      habit.createdAt = new Date().toISOString();
+      habit.history = habit.history || {};
+    }
+    habits[habit.id] = {
+      ...habits[habit.id],
+      ...habit,
+      updatedAt: new Date().toISOString(),
+    };
+    this.store.set('habits', habits);
+    return habits[habit.id];
+  }
+
+  /**
+   * Delete a habit
+   */
+  deleteHabit(habitId) {
+    const habits = this.store.get('habits', {});
+    delete habits[habitId];
+    this.store.set('habits', habits);
+    return true;
   }
 }
 

@@ -228,4 +228,17 @@ function registerIpcHandlers() {
   ipcMain.handle('get-project-order', () => {
     return trackingService.getProjectOrder();
   });
+
+  // Habits
+  ipcMain.handle('get-habits', () => {
+    return trackingService.getHabits();
+  });
+
+  ipcMain.handle('save-habit', (event, habit) => {
+    return trackingService.saveHabit(habit);
+  });
+
+  ipcMain.handle('delete-habit', (event, habitId) => {
+    return trackingService.deleteHabit(habitId);
+  });
 }

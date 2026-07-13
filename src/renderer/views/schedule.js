@@ -8,7 +8,7 @@ import {
 import { createTaskItem } from '../components/task-item.js';
 import { openAddTaskModal } from '../components/modals.js';
 import { initDragAndDrop } from '../components/drag-drop.js';
-import { getLocalDateString } from '../utils.js';
+import { getLocalDateString, getCombinedEvents } from '../utils.js';
 
 /**
  * Render the schedule view (filters + event list).
@@ -42,23 +42,7 @@ async function renderScheduleList(filter) {
   const now = new Date();
 
   // Combine calendar events and manual tasks
-  let allItems = [...calendarEvents];
-
-  // Add manual tasks from the store
-  Object.values(trackedTasks).forEach(task => {
-    if (task.isManual) {
-      allItems.push({
-        id: task.id,
-        summary: task.name,
-        start: task.start,
-        end: task.end,
-        durationMinutes: task.estimateMinutes || 60,
-        calendarColor: '#7c6ef0',
-        calendarName: 'Manual',
-        isManual: true,
-      });
-    }
-  });
+  let allItems = getCombinedEvents(calendarEvents, trackedTasks);
 
   // Apply filter
   if (filter === 'today') {

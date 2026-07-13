@@ -2,7 +2,7 @@
    VIEW — Timer
    ======================================== */
 
-import { formatDuration, escapeHtml, getLocalDateString } from '../utils.js';
+import { formatDuration, escapeHtml, getLocalDateString, getCombinedEvents } from '../utils.js';
 import {
   calendarEvents, trackedTasks, setTrackedTasks,
   selectedTimerTask, setSelectedTimerTask,
@@ -184,36 +184,23 @@ export async function renderTimerView() {
 function renderTimerTaskList() {
   const listEl = document.getElementById('timer-task-list');
 
-  // Combine calendar events with manual tasks
-  const allTasks = [];
-
-  calendarEvents.forEach(e => {
-    const task = trackedTasks[e.id] || {};
-    if (!task.completed) {
-      allTasks.push({
+  const merged = getCombinedEvents(calendarEvents, trackedTasks);
+  const incompleteTasks = merged
+    .map(e => {
+      const task = trackedTasks[e.id] || {};
+      return {
         id: e.id,
         name: e.summary,
         estimate: task.estimateMinutes || e.durationMinutes || null,
-        calendarColor: e.calendarColor,
-      });
-    }
-  });
+        calendarColor: e.calendarColor || '#7c6ef0',
+        completed: task.completed || false
+      };
+    })
+    .filter(t => !t.completed);
 
-  // Add manual tasks
-  Object.values(trackedTasks).forEach(t => {
-    if (t.isManual && !t.completed) {
-      allTasks.push({
-        id: t.id,
-        name: t.name,
-        estimate: t.estimateMinutes || null,
-        calendarColor: '#7c6ef0',
-      });
-    }
-  });
-
-  // Deduplicate
+  // Deduplicate in case there are overlapping IDs
   const seen = new Set();
-  const unique = allTasks.filter(t => {
+  const unique = incompleteTasks.filter(t => {
     if (seen.has(t.id)) return false;
     seen.add(t.id);
     return true;
