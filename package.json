@@ -1,7 +1,7 @@
 {
-  "name": "progress-tracker",
+  "name": "track-it",
   "version": "1.0.0",
-  "description": "Time & Task Progress Tracker — integrates with GNOME Calendar",
+  "description": "TRACK IT — Time & Task Progress Tracker integrates with GNOME Calendar",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",

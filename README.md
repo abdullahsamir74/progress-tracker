@@ -1,10 +1,10 @@
-# Progress Tracker
+# TRACK IT
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D%2024.18.0-blue.svg)](https://nodejs.org/)
 [![Platform](https://img.shields.io/badge/platform-linux-lightgrey.svg)](https://www.gnome.org/)
 
-Progress Tracker is a production-grade, context-isolated desktop time-tracking and productivity dashboard built on Electron, engineered specifically for Linux environments running the GNOME Desktop. It establishes a secure, non-destructive bridge to the system's Evolution Data Server (EDS), allowing users to sync their local calendar schedule, prioritize tasks via a custom pointer-event-based drag-and-drop mechanism, monitor session durations with a precision timer, and evaluate trends via localized analytics.
+TRACK IT is a production-grade, context-isolated desktop time-tracking and productivity dashboard built on Electron, engineered specifically for Linux environments running the GNOME Desktop. It establishes a secure, non-destructive bridge to the system's Evolution Data Server (EDS), allowing users to sync their local calendar schedule, prioritize tasks via a custom pointer-event-based drag-and-drop mechanism, monitor session durations with a precision timer, and evaluate trends via localized analytics.
 
 ---
 
@@ -87,11 +87,11 @@ To ensure the application is easily launchable and pinnable to the GNOME dock fo
     ```bash
     npm run install-desktop
     ```
-    This script programmatically retrieves the active user's Node execution binary, resolves all absolute file paths to the local repository structure, generates a valid `progress-tracker.desktop` entry under `~/.local/share/applications/`, and registers the icon.
+    This script programmatically retrieves the active user's Node execution binary, resolves all absolute file paths to the local repository structure, generates a valid `track-it.desktop` entry under `~/.local/share/applications/`, and registers the icon.
 
   2. **Pin to Favorites**:
     *   Press the **Super** key to open GNOME Activities.
-    *   Search for **"Progress Tracker"** (you will see the custom gradient timer icon).
+    *   Search for **"TRACK IT"** (you will see the custom gradient timer icon).
     *   Right-click the icon and select **Add to Favorites** (or **Pin to Dash**).
 
 ---

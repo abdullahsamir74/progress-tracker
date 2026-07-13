@@ -12,7 +12,7 @@ try {
   const electronCli = path.join(projectDir, 'node_modules', 'electron', 'cli.js');
   const iconPath = path.join(projectDir, 'src', 'renderer', 'icon.png');
   const destDir = path.join(homeDir, '.local', 'share', 'applications');
-  const destFile = path.join(destDir, 'progress-tracker.desktop');
+  const destFile = path.join(destDir, 'track-it.desktop');
 
   if (!fs.existsSync(electronCli)) {
     console.error('Error: Electron dependency not found. Please run "npm install" first.');
@@ -26,15 +26,15 @@ try {
 
   // Generate desktop entry content
   const desktopEntry = `[Desktop Entry]
-Name=Progress Tracker
-Comment=Time & Task Progress Tracker with GNOME Calendar integration
+Name=TRACK IT
+Comment=TRACK IT — Time & Task Progress Tracker with GNOME Calendar integration
 Exec=${nodeBinary} ${electronCli} ${projectDir}
 Path=${projectDir}
 Icon=${iconPath}
 Terminal=false
 Type=Application
 Categories=Utility;Education;ProjectManagement;
-StartupWMClass=progress-tracker
+StartupWMClass=track-it
 StartupNotify=true
 `;
 
@@ -53,7 +53,7 @@ StartupNotify=true
   console.log(`Location: ${destFile}`);
   console.log('\nInstructions to pin:');
   console.log('1. Press Super/Win key to open GNOME Activities.');
-  console.log('2. Search for "Progress Tracker".');
+  console.log('2. Search for "TRACK IT".');
   console.log('3. Right-click the app icon and select "Add to Favorites".');
   console.log('==================================================\n');
 } catch (error) {
