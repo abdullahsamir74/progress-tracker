@@ -8,6 +8,8 @@ import {
   selectedTimerTask, setSelectedTimerTask, taskOrder,
 } from '../state.js';
 import { initDragAndDrop } from '../components/drag-drop.js';
+import { playTimerStopSound } from '../sounds.js';
+import { resetEstimateAlert } from '../app.js';
 
 /**
  * Initialize timer control buttons (play/pause, stop).
@@ -47,6 +49,10 @@ export function initTimerControls() {
   stopBtn.addEventListener('click', async () => {
     const session = await window.tracker.stopTimer();
     if (session) {
+      // Play stop sound and reset estimate alert
+      playTimerStopSound();
+      resetEstimateAlert();
+
       // Reset display
       document.getElementById('timer-display').textContent = '00:00:00';
       document.getElementById('timer-task-name').textContent = 'No task selected';
@@ -97,6 +103,9 @@ export function initTimerControls() {
  */
 export async function startTimerForTask() {
   if (!selectedTimerTask) return;
+
+  // Reset the estimate-reached alert so it can fire for this new session
+  resetEstimateAlert();
 
   await window.tracker.startTimer(
     selectedTimerTask.id,

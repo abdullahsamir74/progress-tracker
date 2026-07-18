@@ -23,6 +23,22 @@ import { initHabits, renderHabitsView } from './views/habits.js';
 import { initModals } from './components/modals.js';
 import { initResetButtons } from './components/confirm-dialog.js';
 
+// ---- Sounds ----
+import { playAlarmSound } from './sounds.js';
+
+// Track whether the estimate-reached alert has already fired for the current session
+let estimateAlertFired = false;
+let currentAlarm = null;
+
+/** Reset the alert flag (call when a new timer starts or stops). */
+export function resetEstimateAlert() {
+  estimateAlertFired = false;
+  if (currentAlarm) {
+    currentAlarm.stop();
+    currentAlarm = null;
+  }
+}
+
 // ---- Initialization ----
 document.addEventListener('DOMContentLoaded', async () => {
   // Register view renderers (avoids circular imports in state.js)
@@ -58,6 +74,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Listen for timer ticks
   window.tracker.onTimerTick((state) => {
     updateTimerDisplay(state);
+
+    // Play alert sound when the timer reaches the estimate
+    if (state.estimateMinutes && state.progress >= 1 && !estimateAlertFired) {
+      estimateAlertFired = true;
+      currentAlarm = playAlarmSound();
+    }
   });
 
   // Update date on dashboard
