@@ -79,6 +79,8 @@ export async function renderProjects() {
 
   allEvents.forEach(event => {
     const task = trackedTasks[event.id] || {};
+    // Skip finished/completed tasks
+    if (task.completed) return;
     if (task.projectId && customProjects[task.projectId]) {
       projectTasks[task.projectId].push(event);
     } else {

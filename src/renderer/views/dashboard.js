@@ -55,16 +55,8 @@ export async function renderDashboard() {
   const estimatedTotal = todayEvents.reduce((sum, e) => sum + (e.durationMinutes || 0), 0);
   document.getElementById('stat-estimated-time').textContent = formatDuration(estimatedTotal);
 
-  // Remaining = total estimate minus estimates of completed tasks
-  const completedEstimate = todayEvents.reduce((sum, e) => {
-    const task = trackedTasks[e.id] || {};
-    if (task.completed) {
-      return sum + (e.durationMinutes || 0);
-    }
-    return sum;
-  }, 0);
-  const remainingMinutes = Math.max(0, estimatedTotal - completedEstimate);
-  document.getElementById('stat-remaining-time').textContent = formatDuration(remainingMinutes);
+
+
 
   // Active timer
   const timerState = await window.tracker.getTimerState();
