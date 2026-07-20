@@ -2,9 +2,9 @@
    VIEW — Habits Tracker
    ======================================== */
 
-import { escapeHtml, getLocalDateString } from '../utils.js';
-import { habits, setHabits, renderCurrentView } from '../state.js';
-import { showConfirmDialog } from '../components/confirm-dialog.js';
+import { escapeHtml, getLocalDateString } from "../utils.js";
+import { habits, setHabits, renderCurrentView } from "../state.js";
+import { showConfirmDialog } from "../components/confirm-dialog.js";
 
 // Selected calendar view state (defaults to current year/month)
 let selectedYear = new Date().getFullYear();
@@ -14,25 +14,25 @@ let selectedMonth = new Date().getMonth(); // 0-indexed
  * Initialize the habits view (event listeners for modals, navigation, resets).
  */
 export function initHabits() {
-  const newHabitBtn = document.getElementById('btn-new-habit');
-  const habitModalOverlay = document.getElementById('habit-modal-overlay');
-  const closeHabitBtn = document.getElementById('btn-habit-close');
-  const cancelHabitBtn = document.getElementById('btn-habit-cancel');
-  const formHabit = document.getElementById('form-habit');
+  const newHabitBtn = document.getElementById("btn-new-habit");
+  const habitModalOverlay = document.getElementById("habit-modal-overlay");
+  const closeHabitBtn = document.getElementById("btn-habit-close");
+  const cancelHabitBtn = document.getElementById("btn-habit-cancel");
+  const formHabit = document.getElementById("form-habit");
 
   // Month navigation
-  const prevMonthBtn = document.getElementById('btn-prev-month');
-  const nextMonthBtn = document.getElementById('btn-next-month');
+  const prevMonthBtn = document.getElementById("btn-prev-month");
+  const nextMonthBtn = document.getElementById("btn-next-month");
 
   if (newHabitBtn) {
-    newHabitBtn.addEventListener('click', () => {
-      document.getElementById('habit-modal-title').textContent = 'Create Habit';
-      document.getElementById('habit-id').value = '';
-      document.getElementById('habit-name').value = '';
-      habitModalOverlay.style.display = 'flex';
+    newHabitBtn.addEventListener("click", () => {
+      document.getElementById("habit-modal-title").textContent = "Create Habit";
+      document.getElementById("habit-id").value = "";
+      document.getElementById("habit-name").value = "";
+      habitModalOverlay.style.display = "flex";
 
       setTimeout(() => {
-        const input = document.getElementById('habit-name');
+        const input = document.getElementById("habit-name");
         if (input) {
           input.focus();
         }
@@ -41,23 +41,23 @@ export function initHabits() {
   }
 
   const closeHabitModal = () => {
-    habitModalOverlay.style.display = 'none';
+    habitModalOverlay.style.display = "none";
   };
 
-  if (closeHabitBtn) closeHabitBtn.addEventListener('click', closeHabitModal);
-  if (cancelHabitBtn) cancelHabitBtn.addEventListener('click', closeHabitModal);
+  if (closeHabitBtn) closeHabitBtn.addEventListener("click", closeHabitModal);
+  if (cancelHabitBtn) cancelHabitBtn.addEventListener("click", closeHabitModal);
   if (habitModalOverlay) {
-    habitModalOverlay.addEventListener('click', (e) => {
+    habitModalOverlay.addEventListener("click", (e) => {
       if (e.target === habitModalOverlay) closeHabitModal();
     });
   }
 
   // Handle form submission for create/edit
   if (formHabit) {
-    formHabit.addEventListener('submit', async (e) => {
+    formHabit.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const id = document.getElementById('habit-id').value;
-      const name = document.getElementById('habit-name').value.trim();
+      const id = document.getElementById("habit-id").value;
+      const name = document.getElementById("habit-name").value.trim();
 
       if (!name) return;
 
@@ -69,7 +69,7 @@ export function initHabits() {
       }
 
       await window.tracker.saveHabit(habit);
-      
+
       // Reload habits
       setHabits(await window.tracker.getHabits());
       closeHabitModal();
@@ -79,7 +79,7 @@ export function initHabits() {
 
   // Month navigation actions
   if (prevMonthBtn) {
-    prevMonthBtn.addEventListener('click', () => {
+    prevMonthBtn.addEventListener("click", () => {
       selectedMonth--;
       if (selectedMonth < 0) {
         selectedMonth = 11;
@@ -90,7 +90,7 @@ export function initHabits() {
   }
 
   if (nextMonthBtn) {
-    nextMonthBtn.addEventListener('click', () => {
+    nextMonthBtn.addEventListener("click", () => {
       selectedMonth++;
       if (selectedMonth > 11) {
         selectedMonth = 0;
@@ -101,20 +101,21 @@ export function initHabits() {
   }
 
   // Reset habits button
-  const resetHabitsBtn = document.getElementById('btn-reset-habits');
+  const resetHabitsBtn = document.getElementById("btn-reset-habits");
   if (resetHabitsBtn) {
-    resetHabitsBtn.addEventListener('click', () => {
+    resetHabitsBtn.addEventListener("click", () => {
       showConfirmDialog({
-        title: 'Reset Habits?',
-        message: 'This will permanently delete all habits and their entire tracking history. This action cannot be undone.',
-        confirmText: 'Reset Habits',
+        title: "Reset Habits?",
+        message:
+          "This will permanently delete all habits and their entire tracking history. This action cannot be undone.",
+        confirmText: "Reset Habits",
         onConfirm: async () => {
           const currentHabits = await window.tracker.getHabits();
           for (const id of Object.keys(currentHabits)) {
             await window.tracker.deleteHabit(id);
           }
           setHabits({});
-        }
+        },
       });
     });
   }
@@ -124,14 +125,14 @@ export function initHabits() {
  * Open habit modal in Edit mode.
  */
 function openEditHabitModal(habit) {
-  const habitModalOverlay = document.getElementById('habit-modal-overlay');
-  document.getElementById('habit-modal-title').textContent = 'Edit Habit';
-  document.getElementById('habit-id').value = habit.id;
-  document.getElementById('habit-name').value = habit.name;
-  
-  habitModalOverlay.style.display = 'flex';
+  const habitModalOverlay = document.getElementById("habit-modal-overlay");
+  document.getElementById("habit-modal-title").textContent = "Edit Habit";
+  document.getElementById("habit-id").value = habit.id;
+  document.getElementById("habit-name").value = habit.name;
+
+  habitModalOverlay.style.display = "flex";
   setTimeout(() => {
-    const input = document.getElementById('habit-name');
+    const input = document.getElementById("habit-name");
     if (input) {
       input.focus();
       input.select();
@@ -145,28 +146,32 @@ function openEditHabitModal(habit) {
 function calculateStreak(habit, year, month) {
   const now = new Date();
   const todayStr = getLocalDateString(now);
-  
+
   let startDate;
-  
+
   const selectedDate = new Date(year, month, 1);
   const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
-  
+
   if (selectedDate.getTime() > currentMonthDate.getTime()) {
     // Selected month is in the future
     return 0;
-  } else if (selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() === now.getMonth()) {
+  } else if (
+    selectedDate.getFullYear() === now.getFullYear() &&
+    selectedDate.getMonth() === now.getMonth()
+  ) {
     // Selected month is current month
     startDate = new Date(now);
   } else {
     // Selected month is in the past: start from the last day of that month
     startDate = new Date(year, month + 1, 0);
   }
-  
+
   let tempDate = new Date(startDate);
   let streak = 0;
-  
-  const isSuccess = (d) => habit.history && habit.history[getLocalDateString(d)] === 'success';
-  
+
+  const isSuccess = (d) =>
+    habit.history && habit.history[getLocalDateString(d)] === "success";
+
   // If starting today, check if today is success. If not, check yesterday.
   // If yesterday is success, start walking back from yesterday. If neither, streak is 0.
   if (getLocalDateString(tempDate) === todayStr) {
@@ -180,12 +185,12 @@ function calculateStreak(habit, year, month) {
       }
     }
   }
-  
+
   while (isSuccess(tempDate)) {
     streak++;
     tempDate.setDate(tempDate.getDate() - 1);
   }
-  
+
   return streak;
 }
 
@@ -193,8 +198,8 @@ function calculateStreak(habit, year, month) {
  * Render the full habits view.
  */
 export async function renderHabitsView() {
-  const container = document.getElementById('habits-container');
-  const monthLabel = document.getElementById('habits-current-month');
+  const container = document.getElementById("habits-container");
+  const monthLabel = document.getElementById("habits-current-month");
 
   if (!container || !monthLabel) return;
 
@@ -204,12 +209,22 @@ export async function renderHabitsView() {
 
   // Update Month Navigation title
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   monthLabel.textContent = `${monthNames[selectedMonth]} ${selectedYear}`;
 
-  container.innerHTML = '';
+  container.innerHTML = "";
 
   const habitList = Object.values(habits);
 
@@ -231,23 +246,24 @@ export async function renderHabitsView() {
   // Calculate days in the selected month
   const numDays = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-  habitList.forEach(habit => {
+  habitList.forEach((habit) => {
     // Stats calculations
     let successCount = 0;
     let failCount = 0;
 
     for (let day = 1; day <= numDays; day++) {
-      const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      if (habit.history[dateStr] === 'success') successCount++;
-      if (habit.history[dateStr] === 'fail') failCount++;
+      const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      if (habit.history[dateStr] === "success") successCount++;
+      if (habit.history[dateStr] === "fail") failCount++;
     }
 
-    const completionRate = numDays > 0 ? Math.round((successCount / numDays) * 100) : 0;
+    const completionRate =
+      numDays > 0 ? Math.round((successCount / numDays) * 100) : 0;
     const currentStreak = calculateStreak(habit, selectedYear, selectedMonth);
 
     // Create habit card element
-    const card = document.createElement('div');
-    card.className = 'habit-card glass';
+    const card = document.createElement("div");
+    card.className = "habit-card glass";
 
     card.innerHTML = `
       <div class="habit-card-header">
@@ -291,38 +307,46 @@ export async function renderHabitsView() {
       </div>
     `;
 
-    const grid = card.querySelector('.habit-days-grid');
+    const grid = card.querySelector(".habit-days-grid");
 
     // Build day circles
     for (let day = 1; day <= numDays; day++) {
-      const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const status = habit.history[dateStr] || 'unset';
-      
-      const circle = document.createElement('div');
-      circle.className = 'habit-day-circle';
-      if (status === 'success') circle.classList.add('state-success');
-      if (status === 'fail') circle.classList.add('state-fail');
+      const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const status = habit.history[dateStr] || "unset";
+
+      const circle = document.createElement("div");
+      circle.className = "habit-day-circle";
+      if (status === "success") circle.classList.add("state-success");
+      if (status === "fail") circle.classList.add("state-fail");
 
       circle.textContent = day;
 
       // Human-readable date string for title/tooltip
       const tempDate = new Date(selectedYear, selectedMonth, day);
-      const dayOptions = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
-      const humanDate = tempDate.toLocaleDateString('en-US', dayOptions);
-      circle.setAttribute('title', `${humanDate}\nClick to toggle: Unset → Done → Failed`);
+      const dayOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      };
+      const humanDate = tempDate.toLocaleDateString("en-US", dayOptions);
+      circle.setAttribute(
+        "title",
+        `${humanDate}\nClick to toggle: Unset → Done → Failed`,
+      );
 
       // Day click event listener to cycle state
-      circle.addEventListener('click', async () => {
+      circle.addEventListener("click", async () => {
         let newStatus;
-        if (status === 'unset') {
-          newStatus = 'success';
-        } else if (status === 'success') {
-          newStatus = 'fail';
+        if (status === "unset") {
+          newStatus = "success";
+        } else if (status === "success") {
+          newStatus = "fail";
         } else {
-          newStatus = 'unset';
+          newStatus = "unset";
         }
 
-        if (newStatus === 'unset') {
+        if (newStatus === "unset") {
           delete habit.history[dateStr];
         } else {
           habit.history[dateStr] = newStatus;
@@ -337,19 +361,19 @@ export async function renderHabitsView() {
     }
 
     // Attach actions
-    card.querySelector('.edit').addEventListener('click', () => {
+    card.querySelector(".edit").addEventListener("click", () => {
       openEditHabitModal(habit);
     });
 
-    card.querySelector('.delete').addEventListener('click', () => {
+    card.querySelector(".delete").addEventListener("click", () => {
       showConfirmDialog({
-        title: 'Delete Habit?',
+        title: "Delete Habit?",
         message: `Are you sure you want to permanently delete the habit "${habit.name}" and all its history?`,
-        confirmText: 'Delete Habit',
+        confirmText: "Delete Habit",
         onConfirm: async () => {
           await window.tracker.deleteHabit(habit.id);
           setHabits(await window.tracker.getHabits());
-        }
+        },
       });
     });
 
@@ -357,8 +381,8 @@ export async function renderHabitsView() {
   });
 
   // Render a little legend helper at the bottom
-  const legend = document.createElement('div');
-  legend.className = 'habits-legend';
+  const legend = document.createElement("div");
+  legend.className = "habits-legend";
   legend.innerHTML = `
     <div class="legend-item">
       <div class="legend-dot"></div>

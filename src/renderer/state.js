@@ -11,7 +11,7 @@ class Store {
       customProjects: {},
       expandedProjects: {},
       habits: {},
-      currentView: 'dashboard',
+      currentView: "dashboard",
       selectedTimerTask: null,
       analyticsChart: null,
       taskOrder: [],
@@ -51,7 +51,7 @@ class Store {
   subscribe(listener) {
     this.listeners.push(listener);
     return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
+      this.listeners = this.listeners.filter((l) => l !== listener);
     };
   }
 
@@ -60,7 +60,7 @@ class Store {
       try {
         listener(this.state);
       } catch (err) {
-        console.error('Error in state subscriber:', err);
+        console.error("Error in state subscriber:", err);
       }
     }
   }
@@ -74,23 +74,43 @@ export let trackedTasks = {};
 export let customProjects = {};
 export let expandedProjects = {};
 export let habits = {};
-export let currentView = 'dashboard';
+export let currentView = "dashboard";
 export let selectedTimerTask = null;
 export let analyticsChart = null;
 export let taskOrder = [];
 export let projectOrder = [];
 
 // ---- State setters invoking the store ----
-export function setCalendarEvents(val) { storeInstance.updateState({ calendarEvents: val }); }
-export function setTrackedTasks(val) { storeInstance.updateState({ trackedTasks: val }); }
-export function setCustomProjects(val) { storeInstance.updateState({ customProjects: val }); }
-export function setExpandedProjects(val) { storeInstance.updateState({ expandedProjects: val }); }
-export function setHabits(val) { storeInstance.updateState({ habits: val }); }
-export function setCurrentView(val) { storeInstance.updateState({ currentView: val }); }
-export function setSelectedTimerTask(val) { storeInstance.updateState({ selectedTimerTask: val }); }
-export function setAnalyticsChart(val) { storeInstance.updateState({ analyticsChart: val }); }
-export function setTaskOrder(val) { storeInstance.updateState({ taskOrder: val }); }
-export function setProjectOrder(val) { storeInstance.updateState({ projectOrder: val }); }
+export function setCalendarEvents(val) {
+  storeInstance.updateState({ calendarEvents: val });
+}
+export function setTrackedTasks(val) {
+  storeInstance.updateState({ trackedTasks: val });
+}
+export function setCustomProjects(val) {
+  storeInstance.updateState({ customProjects: val });
+}
+export function setExpandedProjects(val) {
+  storeInstance.updateState({ expandedProjects: val });
+}
+export function setHabits(val) {
+  storeInstance.updateState({ habits: val });
+}
+export function setCurrentView(val) {
+  storeInstance.updateState({ currentView: val });
+}
+export function setSelectedTimerTask(val) {
+  storeInstance.updateState({ selectedTimerTask: val });
+}
+export function setAnalyticsChart(val) {
+  storeInstance.updateState({ analyticsChart: val });
+}
+export function setTaskOrder(val) {
+  storeInstance.updateState({ taskOrder: val });
+}
+export function setProjectOrder(val) {
+  storeInstance.updateState({ projectOrder: val });
+}
 
 // Expose store subscription if views want to register reactive updates
 export const subscribeToState = (listener) => storeInstance.subscribe(listener);
@@ -105,13 +125,15 @@ export function registerViewRenderers(renderers) {
 // ---- Data Loading ----
 export async function loadData() {
   try {
-    const [events, tasks, timerState, projects, habitsData] = await Promise.all([
-      window.tracker.getCalendarEvents(),
-      window.tracker.getTasks(),
-      window.tracker.getTimerState(),
-      window.tracker.getProjects(),
-      window.tracker.getHabits(),
-    ]);
+    const [events, tasks, timerState, projects, habitsData] = await Promise.all(
+      [
+        window.tracker.getCalendarEvents(),
+        window.tracker.getTasks(),
+        window.tracker.getTimerState(),
+        window.tracker.getProjects(),
+        window.tracker.getHabits(),
+      ],
+    );
 
     const taskOrderVal = (await window.tracker.getTaskOrder()) || [];
     const projectOrderVal = (await window.tracker.getProjectOrder()) || [];
@@ -122,16 +144,16 @@ export async function loadData() {
       customProjects: projects || {},
       habits: habitsData || {},
       taskOrder: taskOrderVal,
-      projectOrder: projectOrderVal
+      projectOrder: projectOrderVal,
     });
 
     // Import updateTimerDisplay dynamically to avoid circular dependency
     if (timerState && timerState.running) {
-      const { updateTimerDisplay } = await import('./views/timer.js');
+      const { updateTimerDisplay } = await import("./views/timer.js");
       updateTimerDisplay(timerState);
     }
   } catch (err) {
-    console.error('Error loading data:', err);
+    console.error("Error loading data:", err);
   }
 }
 
@@ -140,13 +162,13 @@ export function switchView(viewName) {
   storeInstance.updateState({ currentView: viewName });
 
   // Update nav buttons
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.view === viewName);
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.view === viewName);
   });
 
   // Update views
-  document.querySelectorAll('.view').forEach(v => {
-    v.classList.toggle('active', v.id === `view-${viewName}`);
+  document.querySelectorAll(".view").forEach((v) => {
+    v.classList.toggle("active", v.id === `view-${viewName}`);
   });
 
   renderCurrentView();

@@ -30,8 +30,14 @@
   width: 360px;
 }
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .modal-header {
   display: flex;
@@ -57,7 +63,8 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.form-group input, .select-input {
+.form-group input,
+.select-input {
   width: 100%;
   padding: var(--space-sm) var(--space-md);
   background: rgba(255, 255, 255, 0.06);
@@ -69,7 +76,8 @@
   transition: border-color var(--transition-fast);
   outline: none;
 }
-.form-group input:focus, .select-input:focus {
+.form-group input:focus,
+.select-input:focus {
   border-color: var(--accent-primary);
 }
 .form-group input::placeholder {
@@ -130,7 +138,9 @@
   background-color: var(--option-color);
   border-radius: 50%;
   border: 2px solid transparent;
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast);
 }
 .color-picker-option input:checked ~ span {
   transform: scale(1.1);

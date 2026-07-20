@@ -2,16 +2,24 @@
    VIEW — Projects
    ======================================== */
 
-import { escapeHtml, getCombinedEvents } from '../utils.js';
+import { escapeHtml, getCombinedEvents } from "../utils.js";
 import {
-  calendarEvents, trackedTasks, customProjects,
-  expandedProjects, projectOrder,
-  setTrackedTasks, setCustomProjects,
-  setProjectOrder, setExpandedProjects,
-} from '../state.js';
-import { createTaskItem } from '../components/task-item.js';
-import { initProjectModal, openEditProjectModal } from '../components/modals.js';
-import { showConfirmDialog } from '../components/confirm-dialog.js';
+  calendarEvents,
+  trackedTasks,
+  customProjects,
+  expandedProjects,
+  projectOrder,
+  setTrackedTasks,
+  setCustomProjects,
+  setProjectOrder,
+  setExpandedProjects,
+} from "../state.js";
+import { createTaskItem } from "../components/task-item.js";
+import {
+  initProjectModal,
+  openEditProjectModal,
+} from "../components/modals.js";
+import { showConfirmDialog } from "../components/confirm-dialog.js";
 
 /**
  * Initialize the projects view (modals, reset button).
@@ -19,20 +27,21 @@ import { showConfirmDialog } from '../components/confirm-dialog.js';
 export function initProjects() {
   initProjectModal();
 
-  const resetProjBtn = document.getElementById('btn-reset-projects');
+  const resetProjBtn = document.getElementById("btn-reset-projects");
   if (resetProjBtn) {
-    resetProjBtn.addEventListener('click', () => {
+    resetProjBtn.addEventListener("click", () => {
       showConfirmDialog({
-        title: 'Reset Projects?',
-        message: 'This will permanently delete all custom projects and project ordering. Tasks inside these projects will be kept but returned to Unassigned.',
-        confirmText: 'Reset Projects',
+        title: "Reset Projects?",
+        message:
+          "This will permanently delete all custom projects and project ordering. Tasks inside these projects will be kept but returned to Unassigned.",
+        confirmText: "Reset Projects",
         onConfirm: async () => {
           await window.tracker.resetProjects();
           setCustomProjects({});
           setProjectOrder([]);
           setExpandedProjects({});
           setTrackedTasks(await window.tracker.getTasks());
-        }
+        },
       });
     });
   }
@@ -42,14 +51,16 @@ export function initProjects() {
  * Render the full projects view.
  */
 export async function renderProjects() {
-  const projectsStack = document.getElementById('projects-list-stack');
-  const unassignedPool = document.getElementById('unassigned-tasks-pool');
-  const unassignedCountBadge = document.getElementById('unassigned-tasks-count');
+  const projectsStack = document.getElementById("projects-list-stack");
+  const unassignedPool = document.getElementById("unassigned-tasks-pool");
+  const unassignedCountBadge = document.getElementById(
+    "unassigned-tasks-count",
+  );
 
   if (!projectsStack || !unassignedPool) return;
 
-  projectsStack.innerHTML = '';
-  unassignedPool.innerHTML = '';
+  projectsStack.innerHTML = "";
+  unassignedPool.innerHTML = "";
 
   let timerState = null;
   try {
@@ -68,7 +79,7 @@ export async function renderProjects() {
   });
 
   const projectTasks = {};
-  projects.forEach(p => {
+  projects.forEach((p) => {
     projectTasks[p.id] = [];
   });
 
@@ -77,7 +88,7 @@ export async function renderProjects() {
 
   const unassignedEvents = [];
 
-  allEvents.forEach(event => {
+  allEvents.forEach((event) => {
     const task = trackedTasks[event.id] || {};
     // Skip finished/completed tasks
     if (task.completed) return;
@@ -89,10 +100,10 @@ export async function renderProjects() {
   });
 
   if (projects.length === 0) {
-    const emptyBoard = document.createElement('div');
-    emptyBoard.className = 'empty-state';
-    emptyBoard.style.flex = '1';
-    emptyBoard.style.height = '100%';
+    const emptyBoard = document.createElement("div");
+    emptyBoard.className = "empty-state";
+    emptyBoard.style.flex = "1";
+    emptyBoard.style.height = "100%";
     emptyBoard.innerHTML = `
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
@@ -102,10 +113,10 @@ export async function renderProjects() {
     `;
     projectsStack.appendChild(emptyBoard);
   } else {
-    projects.forEach(project => {
-      const card = document.createElement('div');
+    projects.forEach((project) => {
+      const card = document.createElement("div");
       const isExpanded = expandedProjects[project.id] === true;
-      card.className = `project-card ${isExpanded ? 'expanded' : ''}`;
+      card.className = `project-card ${isExpanded ? "expanded" : ""}`;
       card.dataset.projectId = project.id;
 
       card.innerHTML = `
@@ -147,43 +158,56 @@ export async function renderProjects() {
         </div>
       `;
 
-      const listContainer = card.querySelector('.project-task-list');
+      const listContainer = card.querySelector(".project-task-list");
       const events = projectTasks[project.id];
       if (events.length === 0) {
-        const emptyCol = document.createElement('div');
-        emptyCol.className = 'empty-state small';
-        emptyCol.style.padding = 'var(--space-md) 0';
+        const emptyCol = document.createElement("div");
+        emptyCol.className = "empty-state small";
+        emptyCol.style.padding = "var(--space-md) 0";
         emptyCol.innerHTML = `<p style="font-size:12px;">Drag tasks here</p>`;
         listContainer.appendChild(emptyCol);
       } else {
-        events.forEach(event => {
+        events.forEach((event) => {
           const cardEl = createTaskItem(event, false, timerState);
-          cardEl.setAttribute('draggable', 'true');
+          cardEl.setAttribute("draggable", "true");
           listContainer.appendChild(cardEl);
         });
       }
 
-      card.querySelector('.project-card-header').addEventListener('click', (e) => {
-        if (e.target.closest('.btn-delete-project') || e.target.closest('.btn-edit-project') || e.target.closest('.project-drag-handle')) return;
-        const expanded = card.classList.toggle('expanded');
-        expandedProjects[project.id] = expanded;
-      });
+      card
+        .querySelector(".project-card-header")
+        .addEventListener("click", (e) => {
+          if (
+            e.target.closest(".btn-delete-project") ||
+            e.target.closest(".btn-edit-project") ||
+            e.target.closest(".project-drag-handle")
+          )
+            return;
+          const expanded = card.classList.toggle("expanded");
+          expandedProjects[project.id] = expanded;
+        });
 
-      card.querySelector('.btn-edit-project').addEventListener('click', (e) => {
+      card.querySelector(".btn-edit-project").addEventListener("click", (e) => {
         e.stopPropagation();
         openEditProjectModal(project);
       });
 
-      card.querySelector('.btn-delete-project').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (confirm(`Are you sure you want to delete project "${project.name}"? Tasks in it will return to Unassigned.`)) {
-          await window.tracker.deleteProject(project.id);
-          delete expandedProjects[project.id];
-          setCustomProjects(await window.tracker.getProjects());
-          setTrackedTasks(await window.tracker.getTasks());
-          renderProjects();
-        }
-      });
+      card
+        .querySelector(".btn-delete-project")
+        .addEventListener("click", async (e) => {
+          e.stopPropagation();
+          if (
+            confirm(
+              `Are you sure you want to delete project "${project.name}"? Tasks in it will return to Unassigned.`,
+            )
+          ) {
+            await window.tracker.deleteProject(project.id);
+            delete expandedProjects[project.id];
+            setCustomProjects(await window.tracker.getProjects());
+            setTrackedTasks(await window.tracker.getTasks());
+            renderProjects();
+          }
+        });
 
       projectsStack.appendChild(card);
     });
@@ -197,9 +221,9 @@ export async function renderProjects() {
       </div>
     `;
   } else {
-    unassignedEvents.forEach(event => {
+    unassignedEvents.forEach((event) => {
       const card = createTaskItem(event, false, timerState);
-      card.setAttribute('draggable', 'true');
+      card.setAttribute("draggable", "true");
       unassignedPool.appendChild(card);
     });
   }
@@ -212,37 +236,41 @@ export async function renderProjects() {
  * Initialize drag-and-drop for assigning tasks to projects.
  */
 function initProjectsDragAndDrop() {
-  const draggables = document.querySelectorAll('#view-projects .task-item[draggable="true"]');
-  const projectCards = document.querySelectorAll('#view-projects .project-card');
-  const unassignedPool = document.getElementById('unassigned-tasks-pool');
+  const draggables = document.querySelectorAll(
+    '#view-projects .task-item[draggable="true"]',
+  );
+  const projectCards = document.querySelectorAll(
+    "#view-projects .project-card",
+  );
+  const unassignedPool = document.getElementById("unassigned-tasks-pool");
 
-  draggables.forEach(draggable => {
-    draggable.addEventListener('dragstart', (e) => {
-      draggable.classList.add('dragging');
-      e.dataTransfer.setData('text/plain', draggable.dataset.taskId);
-      e.dataTransfer.effectAllowed = 'move';
+  draggables.forEach((draggable) => {
+    draggable.addEventListener("dragstart", (e) => {
+      draggable.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", draggable.dataset.taskId);
+      e.dataTransfer.effectAllowed = "move";
     });
 
-    draggable.addEventListener('dragend', () => {
-      draggable.classList.remove('dragging');
+    draggable.addEventListener("dragend", () => {
+      draggable.classList.remove("dragging");
     });
   });
 
-  projectCards.forEach(card => {
-    card.addEventListener('dragover', (e) => {
+  projectCards.forEach((card) => {
+    card.addEventListener("dragover", (e) => {
       e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      card.classList.add('drag-over');
+      e.dataTransfer.dropEffect = "move";
+      card.classList.add("drag-over");
     });
 
-    card.addEventListener('dragleave', () => {
-      card.classList.remove('drag-over');
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("drag-over");
     });
 
-    card.addEventListener('drop', async (e) => {
+    card.addEventListener("drop", async (e) => {
       e.preventDefault();
-      card.classList.remove('drag-over');
-      const taskId = e.dataTransfer.getData('text/plain');
+      card.classList.remove("drag-over");
+      const taskId = e.dataTransfer.getData("text/plain");
       const projectId = card.dataset.projectId;
 
       if (taskId) {
@@ -254,20 +282,20 @@ function initProjectsDragAndDrop() {
   });
 
   if (unassignedPool) {
-    unassignedPool.addEventListener('dragover', (e) => {
+    unassignedPool.addEventListener("dragover", (e) => {
       e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      unassignedPool.classList.add('drag-over');
+      e.dataTransfer.dropEffect = "move";
+      unassignedPool.classList.add("drag-over");
     });
 
-    unassignedPool.addEventListener('dragleave', () => {
-      unassignedPool.classList.remove('drag-over');
+    unassignedPool.addEventListener("dragleave", () => {
+      unassignedPool.classList.remove("drag-over");
     });
 
-    unassignedPool.addEventListener('drop', async (e) => {
+    unassignedPool.addEventListener("drop", async (e) => {
       e.preventDefault();
-      unassignedPool.classList.remove('drag-over');
-      const taskId = e.dataTransfer.getData('text/plain');
+      unassignedPool.classList.remove("drag-over");
+      const taskId = e.dataTransfer.getData("text/plain");
 
       if (taskId) {
         await window.tracker.assignTaskToProject(taskId, null);
@@ -282,8 +310,8 @@ function initProjectsDragAndDrop() {
  * Initialize drag-and-drop for reordering project cards.
  */
 function initProjectsListDragAndDrop(listEl) {
-  if (listEl.dataset.dragInitDone === 'true') return;
-  listEl.dataset.dragInitDone = 'true';
+  if (listEl.dataset.dragInitDone === "true") return;
+  listEl.dataset.dragInitDone = "true";
 
   let draggedItem = null;
   let placeholder = null;
@@ -291,18 +319,19 @@ function initProjectsListDragAndDrop(listEl) {
   let isDragging = false;
 
   function getVisualChildren() {
-    return [...listEl.children].filter(el =>
-      el !== draggedItem &&
-      !el.classList.contains('drag-placeholder') &&
-      el.classList.contains('project-card')
+    return [...listEl.children].filter(
+      (el) =>
+        el !== draggedItem &&
+        !el.classList.contains("drag-placeholder") &&
+        el.classList.contains("project-card"),
     );
   }
 
   function onMouseDown(e) {
-    const handle = e.target.closest('.project-drag-handle');
+    const handle = e.target.closest(".project-drag-handle");
     if (!handle) return;
 
-    const item = handle.closest('.project-card');
+    const item = handle.closest(".project-card");
     if (!item) return;
 
     e.preventDefault();
@@ -311,31 +340,31 @@ function initProjectsListDragAndDrop(listEl) {
     const rect = item.getBoundingClientRect();
     offsetY = e.clientY - rect.top;
 
-    placeholder = document.createElement('div');
-    placeholder.className = 'project-card drag-placeholder';
-    placeholder.style.height = rect.height + 'px';
-    placeholder.style.marginBottom = 'var(--space-md)';
+    placeholder = document.createElement("div");
+    placeholder.className = "project-card drag-placeholder";
+    placeholder.style.height = rect.height + "px";
+    placeholder.style.marginBottom = "var(--space-md)";
 
-    item.classList.add('dragging');
-    item.style.position = 'fixed';
-    item.style.width = rect.width + 'px';
-    item.style.top = rect.top + 'px';
-    item.style.left = rect.left + 'px';
-    item.style.zIndex = '1000';
-    item.style.pointerEvents = 'none';
+    item.classList.add("dragging");
+    item.style.position = "fixed";
+    item.style.width = rect.width + "px";
+    item.style.top = rect.top + "px";
+    item.style.left = rect.left + "px";
+    item.style.zIndex = "1000";
+    item.style.pointerEvents = "none";
 
     item.parentNode.insertBefore(placeholder, item);
 
     isDragging = true;
-    document.body.style.cursor = 'grabbing';
+    document.body.style.cursor = "grabbing";
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
   }
 
   function onMouseMove(e) {
     if (!isDragging || !draggedItem) return;
-    draggedItem.style.top = (e.clientY - offsetY) + 'px';
+    draggedItem.style.top = e.clientY - offsetY + "px";
 
     const elements = getVisualChildren();
     let target = null;
@@ -361,22 +390,22 @@ function initProjectsListDragAndDrop(listEl) {
   function onMouseUp() {
     if (!isDragging || !draggedItem) return;
 
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-    document.body.style.cursor = '';
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    document.body.style.cursor = "";
 
     if (placeholder.parentNode) {
       placeholder.parentNode.insertBefore(draggedItem, placeholder);
       placeholder.parentNode.removeChild(placeholder);
     }
 
-    draggedItem.classList.remove('dragging');
-    draggedItem.style.position = '';
-    draggedItem.style.width = '';
-    draggedItem.style.top = '';
-    draggedItem.style.left = '';
-    draggedItem.style.zIndex = '';
-    draggedItem.style.pointerEvents = '';
+    draggedItem.classList.remove("dragging");
+    draggedItem.style.position = "";
+    draggedItem.style.width = "";
+    draggedItem.style.top = "";
+    draggedItem.style.left = "";
+    draggedItem.style.zIndex = "";
+    draggedItem.style.pointerEvents = "";
 
     saveCurrentProjectOrder(listEl);
 
@@ -385,15 +414,15 @@ function initProjectsListDragAndDrop(listEl) {
     isDragging = false;
   }
 
-  listEl.addEventListener('mousedown', onMouseDown);
+  listEl.addEventListener("mousedown", onMouseDown);
 }
 
 /**
  * Persist the current visual order of project cards.
  */
 async function saveCurrentProjectOrder(listEl) {
-  const items = listEl.querySelectorAll('.project-card[data-project-id]');
-  const orderedIds = [...items].map(el => el.dataset.projectId);
+  const items = listEl.querySelectorAll(".project-card[data-project-id]");
+  const orderedIds = [...items].map((el) => el.dataset.projectId);
   setProjectOrder(orderedIds);
   await window.tracker.saveProjectOrder(orderedIds);
 }

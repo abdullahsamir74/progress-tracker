@@ -28,11 +28,11 @@ function playDigitalBeep(startDelay = 0, duration = 0.08, volume = 0.18) {
   // the recognizable sharp electronic alarm tone
   const freqs = [2500, 3200];
 
-  freqs.forEach(freq => {
+  freqs.forEach((freq) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = 'square';
+    osc.type = "square";
     osc.frequency.setValueAtTime(freq, now);
 
     // Hard on/off — no fade — like a real digital alarm
@@ -79,7 +79,7 @@ export function playAlarmSound() {
     stop() {
       cancelled = true;
       clearTimeout(timeout);
-    }
+    },
   };
 }
 
@@ -96,5 +96,3 @@ export function playTimerStopSound() {
 export function playEstimateCompleteSound() {
   playAlarmBurst(0);
 }
-
-

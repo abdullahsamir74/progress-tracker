@@ -9,22 +9,26 @@ import {
   switchView,
   registerViewRenderers,
   renderCurrentView,
-} from './state.js';
+} from "./state.js";
 
 // ---- Views ----
-import { renderDashboard, updateDashboardDate } from './views/dashboard.js';
-import { renderSchedule } from './views/schedule.js';
-import { initTimerControls, renderTimerView, updateTimerDisplay } from './views/timer.js';
-import { initAnalytics, renderAnalytics } from './views/analytics.js';
-import { initProjects, renderProjects } from './views/projects.js';
-import { initHabits, renderHabitsView } from './views/habits.js';
+import { renderDashboard, updateDashboardDate } from "./views/dashboard.js";
+import { renderSchedule } from "./views/schedule.js";
+import {
+  initTimerControls,
+  renderTimerView,
+  updateTimerDisplay,
+} from "./views/timer.js";
+import { initAnalytics, renderAnalytics } from "./views/analytics.js";
+import { initProjects, renderProjects } from "./views/projects.js";
+import { initHabits, renderHabitsView } from "./views/habits.js";
 
 // ---- Components ----
-import { initModals } from './components/modals.js';
-import { initResetButtons } from './components/confirm-dialog.js';
+import { initModals } from "./components/modals.js";
+import { initResetButtons } from "./components/confirm-dialog.js";
 
 // ---- Sounds ----
-import { playAlarmSound } from './sounds.js';
+import { playAlarmSound } from "./sounds.js";
 
 // Track whether the estimate-reached alert has already fired for the current session
 let estimateAlertFired = false;
@@ -40,7 +44,7 @@ export function resetEstimateAlert() {
 }
 
 // ---- Initialization ----
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // Register view renderers (avoids circular imports in state.js)
   registerViewRenderers({
     dashboard: renderDashboard,
@@ -88,15 +92,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ---- Titlebar ----
 function initTitlebar() {
-  document.getElementById('btn-minimize').addEventListener('click', () => window.tracker.minimize());
-  document.getElementById('btn-maximize').addEventListener('click', () => window.tracker.maximize());
-  document.getElementById('btn-close').addEventListener('click', () => window.tracker.close());
+  document
+    .getElementById("btn-minimize")
+    .addEventListener("click", () => window.tracker.minimize());
+  document
+    .getElementById("btn-maximize")
+    .addEventListener("click", () => window.tracker.maximize());
+  document
+    .getElementById("btn-close")
+    .addEventListener("click", () => window.tracker.close());
 }
 
 // ---- Navigation ----
 function initNavigation() {
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
       const view = btn.dataset.view;
       switchView(view);
     });

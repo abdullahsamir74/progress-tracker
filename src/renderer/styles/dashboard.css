@@ -51,13 +51,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, rgba(124, 110, 240, 0.12), rgba(78, 205, 196, 0.06)) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 110, 240, 0.12),
+    rgba(78, 205, 196, 0.06)
+  ) !important;
   border-color: rgba(124, 110, 240, 0.2) !important;
   animation: pulseGlow 2s ease-in-out infinite;
 }
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(124, 110, 240, 0.05); }
-  50% { box-shadow: 0 0 30px rgba(124, 110, 240, 0.12); }
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(124, 110, 240, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(124, 110, 240, 0.12);
+  }
 }
 .active-timer-label {
   font-size: 11px;

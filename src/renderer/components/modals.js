@@ -2,116 +2,147 @@
    COMPONENT — Modals (Add Task, Estimate, Project)
    ======================================== */
 
-import { setTrackedTasks, setCustomProjects, renderCurrentView } from '../state.js';
-import { getLocalDateString } from '../utils.js';
+import {
+  setTrackedTasks,
+  setCustomProjects,
+  renderCurrentView,
+} from "../state.js";
+import { getLocalDateString } from "../utils.js";
 
 // ---- Init ----
 export function initModals() {
   // Add task modal
-  document.getElementById('btn-modal-close').addEventListener('click', closeModals);
-  document.getElementById('btn-cancel-task').addEventListener('click', closeModals);
-  document.getElementById('modal-overlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modal-overlay')) closeModals();
+  document
+    .getElementById("btn-modal-close")
+    .addEventListener("click", closeModals);
+  document
+    .getElementById("btn-cancel-task")
+    .addEventListener("click", closeModals);
+  document.getElementById("modal-overlay").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("modal-overlay")) closeModals();
   });
 
   // Estimate modal
-  document.getElementById('btn-estimate-close').addEventListener('click', closeModals);
-  document.getElementById('btn-estimate-cancel').addEventListener('click', closeModals);
-  document.getElementById('estimate-modal-overlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('estimate-modal-overlay')) closeModals();
-  });
+  document
+    .getElementById("btn-estimate-close")
+    .addEventListener("click", closeModals);
+  document
+    .getElementById("btn-estimate-cancel")
+    .addEventListener("click", closeModals);
+  document
+    .getElementById("estimate-modal-overlay")
+    .addEventListener("click", (e) => {
+      if (e.target === document.getElementById("estimate-modal-overlay"))
+        closeModals();
+    });
 
   // Edit task modal
-  document.getElementById('btn-edit-task-close').addEventListener('click', closeModals);
-  document.getElementById('btn-edit-task-cancel').addEventListener('click', closeModals);
-  document.getElementById('edit-task-modal-overlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('edit-task-modal-overlay')) closeModals();
-  });
+  document
+    .getElementById("btn-edit-task-close")
+    .addEventListener("click", closeModals);
+  document
+    .getElementById("btn-edit-task-cancel")
+    .addEventListener("click", closeModals);
+  document
+    .getElementById("edit-task-modal-overlay")
+    .addEventListener("click", (e) => {
+      if (e.target === document.getElementById("edit-task-modal-overlay"))
+        closeModals();
+    });
 
   // Form submissions
-  document.getElementById('form-add-task').addEventListener('submit', handleAddTask);
-  document.getElementById('form-estimate').addEventListener('submit', handleSetEstimate);
-  document.getElementById('form-edit-task').addEventListener('submit', handleEditTask);
+  document
+    .getElementById("form-add-task")
+    .addEventListener("submit", handleAddTask);
+  document
+    .getElementById("form-estimate")
+    .addEventListener("submit", handleSetEstimate);
+  document
+    .getElementById("form-edit-task")
+    .addEventListener("submit", handleEditTask);
 }
 
 // ---- Add Task Modal ----
 export function openAddTaskModal() {
   const today = getLocalDateString();
-  document.getElementById('task-date').value = today;
-  document.getElementById('task-time').value = '09:00';
-  document.getElementById('task-name').value = '';
-  document.getElementById('task-estimate').value = '';
-  document.getElementById('modal-overlay').style.display = 'flex';
+  document.getElementById("task-date").value = today;
+  document.getElementById("task-time").value = "09:00";
+  document.getElementById("task-name").value = "";
+  document.getElementById("task-estimate").value = "";
+  document.getElementById("modal-overlay").style.display = "flex";
 }
 
 // ---- Estimate Modal ----
 export function openEstimateModal(taskId, currentEstimate) {
-  document.getElementById('estimate-task-id').value = taskId;
-  document.getElementById('estimate-minutes').value = currentEstimate || '';
-  document.getElementById('estimate-modal-overlay').style.display = 'flex';
+  document.getElementById("estimate-task-id").value = taskId;
+  document.getElementById("estimate-minutes").value = currentEstimate || "";
+  document.getElementById("estimate-modal-overlay").style.display = "flex";
 }
 
 // ---- Edit Task Modal ----
 export function openEditTaskModal(task) {
-  document.getElementById('edit-task-id').value = task.id;
-  document.getElementById('edit-task-is-manual').value = task.isManual ? 'true' : 'false';
+  document.getElementById("edit-task-id").value = task.id;
+  document.getElementById("edit-task-is-manual").value = task.isManual
+    ? "true"
+    : "false";
 
-  const nameInput = document.getElementById('edit-task-name');
-  const dateInput = document.getElementById('edit-task-date');
-  const timeInput = document.getElementById('edit-task-time');
-  const estimateInput = document.getElementById('edit-task-estimate');
-  const calendarNotice = document.getElementById('edit-task-calendar-notice');
+  const nameInput = document.getElementById("edit-task-name");
+  const dateInput = document.getElementById("edit-task-date");
+  const timeInput = document.getElementById("edit-task-time");
+  const estimateInput = document.getElementById("edit-task-estimate");
+  const calendarNotice = document.getElementById("edit-task-calendar-notice");
 
-  nameInput.value = task.name || '';
-  estimateInput.value = task.estimate || '';
+  nameInput.value = task.name || "";
+  estimateInput.value = task.estimate || "";
 
   if (task.start) {
     const d = new Date(task.start);
     if (!isNaN(d.getTime())) {
       dateInput.value = getLocalDateString(d);
 
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
       timeInput.value = `${hours}:${minutes}`;
     } else {
-      dateInput.value = '';
-      timeInput.value = '';
+      dateInput.value = "";
+      timeInput.value = "";
     }
   } else {
-    dateInput.value = '';
-    timeInput.value = '';
+    dateInput.value = "";
+    timeInput.value = "";
   }
 
   if (task.isManual) {
     nameInput.disabled = false;
     dateInput.disabled = false;
     timeInput.disabled = false;
-    calendarNotice.style.display = 'none';
+    calendarNotice.style.display = "none";
   } else {
     nameInput.disabled = true;
     dateInput.disabled = true;
     timeInput.disabled = true;
-    calendarNotice.style.display = 'block';
+    calendarNotice.style.display = "block";
   }
 
-  document.getElementById('edit-task-modal-overlay').style.display = 'flex';
+  document.getElementById("edit-task-modal-overlay").style.display = "flex";
 }
 
 // ---- Close All Modals ----
 export function closeModals() {
-  document.getElementById('modal-overlay').style.display = 'none';
-  document.getElementById('estimate-modal-overlay').style.display = 'none';
-  document.getElementById('edit-task-modal-overlay').style.display = 'none';
+  document.getElementById("modal-overlay").style.display = "none";
+  document.getElementById("estimate-modal-overlay").style.display = "none";
+  document.getElementById("edit-task-modal-overlay").style.display = "none";
 }
 
 // ---- Handlers ----
 async function handleAddTask(e) {
   e.preventDefault();
 
-  const name = document.getElementById('task-name').value.trim();
-  const date = document.getElementById('task-date').value;
-  const time = document.getElementById('task-time').value;
-  const estimate = parseInt(document.getElementById('task-estimate').value) || 60;
+  const name = document.getElementById("task-name").value.trim();
+  const date = document.getElementById("task-date").value;
+  const time = document.getElementById("task-time").value;
+  const estimate =
+    parseInt(document.getElementById("task-estimate").value) || 60;
 
   if (!name || !date || !time) return;
 
@@ -138,8 +169,8 @@ async function handleAddTask(e) {
 async function handleSetEstimate(e) {
   e.preventDefault();
 
-  const taskId = document.getElementById('estimate-task-id').value;
-  const minutes = parseInt(document.getElementById('estimate-minutes').value);
+  const taskId = document.getElementById("estimate-task-id").value;
+  const minutes = parseInt(document.getElementById("estimate-minutes").value);
 
   if (!taskId || !minutes) return;
 
@@ -153,12 +184,14 @@ async function handleSetEstimate(e) {
 async function handleEditTask(e) {
   e.preventDefault();
 
-  const id = document.getElementById('edit-task-id').value;
-  const isManual = document.getElementById('edit-task-is-manual').value === 'true';
-  const name = document.getElementById('edit-task-name').value.trim();
-  const date = document.getElementById('edit-task-date').value;
-  const time = document.getElementById('edit-task-time').value;
-  const estimate = parseInt(document.getElementById('edit-task-estimate').value) || 0;
+  const id = document.getElementById("edit-task-id").value;
+  const isManual =
+    document.getElementById("edit-task-is-manual").value === "true";
+  const name = document.getElementById("edit-task-name").value.trim();
+  const date = document.getElementById("edit-task-date").value;
+  const time = document.getElementById("edit-task-time").value;
+  const estimate =
+    parseInt(document.getElementById("edit-task-estimate").value) || 0;
 
   if (isManual) {
     if (!name || !date || !time) return;
@@ -187,24 +220,25 @@ async function handleEditTask(e) {
 
 // ---- Project Modal (init is handled by views/projects.js) ----
 export function initProjectModal() {
-  const newProjBtn = document.getElementById('btn-new-project');
-  const projModalOverlay = document.getElementById('project-modal-overlay');
-  const closeProjBtn = document.getElementById('btn-project-close');
-  const cancelProjBtn = document.getElementById('btn-project-cancel');
-  const formProj = document.getElementById('form-project');
+  const newProjBtn = document.getElementById("btn-new-project");
+  const projModalOverlay = document.getElementById("project-modal-overlay");
+  const closeProjBtn = document.getElementById("btn-project-close");
+  const cancelProjBtn = document.getElementById("btn-project-cancel");
+  const formProj = document.getElementById("form-project");
 
   if (newProjBtn) {
-    newProjBtn.addEventListener('click', () => {
-      document.getElementById('project-modal-title').textContent = 'Create Project';
-      document.getElementById('project-id').value = '';
-      document.getElementById('project-name').value = '';
-      const radios = document.getElementsByName('project-color');
+    newProjBtn.addEventListener("click", () => {
+      document.getElementById("project-modal-title").textContent =
+        "Create Project";
+      document.getElementById("project-id").value = "";
+      document.getElementById("project-name").value = "";
+      const radios = document.getElementsByName("project-color");
       if (radios.length > 0) radios[0].checked = true;
-      projModalOverlay.style.display = 'flex';
+      projModalOverlay.style.display = "flex";
 
       // Force input focus in Electron
       setTimeout(() => {
-        const input = document.getElementById('project-name');
+        const input = document.getElementById("project-name");
         if (input) {
           input.focus();
           input.select();
@@ -214,23 +248,25 @@ export function initProjectModal() {
   }
 
   const closeProjModal = () => {
-    projModalOverlay.style.display = 'none';
+    projModalOverlay.style.display = "none";
   };
 
-  if (closeProjBtn) closeProjBtn.addEventListener('click', closeProjModal);
-  if (cancelProjBtn) cancelProjBtn.addEventListener('click', closeProjModal);
+  if (closeProjBtn) closeProjBtn.addEventListener("click", closeProjModal);
+  if (cancelProjBtn) cancelProjBtn.addEventListener("click", closeProjModal);
   if (projModalOverlay) {
-    projModalOverlay.addEventListener('click', (e) => {
+    projModalOverlay.addEventListener("click", (e) => {
       if (e.target === projModalOverlay) closeProjModal();
     });
   }
 
   if (formProj) {
-    formProj.addEventListener('submit', async (e) => {
+    formProj.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const id = document.getElementById('project-id').value;
-      const name = document.getElementById('project-name').value;
-      const color = document.querySelector('input[name="project-color"]:checked').value;
+      const id = document.getElementById("project-id").value;
+      const name = document.getElementById("project-name").value;
+      const color = document.querySelector(
+        'input[name="project-color"]:checked',
+      ).value;
 
       const project = { name, color };
       if (id) project.id = id;
@@ -239,7 +275,7 @@ export function initProjectModal() {
       setCustomProjects(await window.tracker.getProjects());
       closeProjModal();
       // Dynamically import to avoid circular deps
-      const { renderProjects } = await import('../views/projects.js');
+      const { renderProjects } = await import("../views/projects.js");
       renderProjects();
     });
   }
@@ -249,23 +285,24 @@ export function initProjectModal() {
  * Open the project modal in edit mode populated with the given project details.
  */
 export function openEditProjectModal(project) {
-  const projModalOverlay = document.getElementById('project-modal-overlay');
-  document.getElementById('project-modal-title').textContent = 'Edit Project';
-  document.getElementById('project-id').value = project.id;
-  document.getElementById('project-name').value = project.name;
-  
-  const radio = document.querySelector(`input[name="project-color"][value="${project.color}"]`);
+  const projModalOverlay = document.getElementById("project-modal-overlay");
+  document.getElementById("project-modal-title").textContent = "Edit Project";
+  document.getElementById("project-id").value = project.id;
+  document.getElementById("project-name").value = project.name;
+
+  const radio = document.querySelector(
+    `input[name="project-color"][value="${project.color}"]`,
+  );
   if (radio) {
     radio.checked = true;
   }
-  
-  projModalOverlay.style.display = 'flex';
+
+  projModalOverlay.style.display = "flex";
   setTimeout(() => {
-    const input = document.getElementById('project-name');
+    const input = document.getElementById("project-name");
     if (input) {
       input.focus();
       input.select();
     }
   }, 50);
 }
-

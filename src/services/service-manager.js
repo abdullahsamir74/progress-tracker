@@ -6,8 +6,8 @@ class ServiceManager {
 
   /**
    * Register a service instance
-   * @param {string} name 
-   * @param {object} serviceInstance 
+   * @param {string} name
+   * @param {object} serviceInstance
    */
   register(name, serviceInstance) {
     this.services[name] = serviceInstance;
@@ -15,7 +15,7 @@ class ServiceManager {
 
   /**
    * Get a registered service instance
-   * @param {string} name 
+   * @param {string} name
    */
   get(name) {
     return this.services[name];
@@ -23,23 +23,28 @@ class ServiceManager {
 
   /**
    * Dynamically invoke a service method
-   * @param {string} serviceName 
-   * @param {string} methodName 
-   * @param  {...any} args 
+   * @param {string} serviceName
+   * @param {string} methodName
+   * @param  {...any} args
    */
   async invoke(serviceName, methodName, ...args) {
     const service = this.get(serviceName);
     if (!service) {
       throw new Error(`Service "${serviceName}" is not registered`);
     }
-    if (typeof service[methodName] !== 'function') {
-      throw new Error(`Method "${methodName}" not found on service "${serviceName}"`);
+    if (typeof service[methodName] !== "function") {
+      throw new Error(
+        `Method "${methodName}" not found on service "${serviceName}"`,
+      );
     }
 
     // Handle special timer tick callbacks dynamically
-    if (serviceName === 'timer' && (methodName === 'start' || methodName === 'resume')) {
+    if (
+      serviceName === "timer" &&
+      (methodName === "start" || methodName === "resume")
+    ) {
       const onTick = (data) => {
-        this.notify('timer', 'tick', data);
+        this.notify("timer", "tick", data);
       };
       return await service[methodName](...args, onTick);
     }
@@ -49,7 +54,7 @@ class ServiceManager {
 
   /**
    * Subscribe to service events
-   * @param {function} handler 
+   * @param {function} handler
    */
   onEvent(handler) {
     this.eventHandlers.push(handler);
@@ -57,16 +62,19 @@ class ServiceManager {
 
   /**
    * Notify subscribers of an event
-   * @param {string} serviceName 
-   * @param {string} eventName 
-   * @param {any} data 
+   * @param {string} serviceName
+   * @param {string} eventName
+   * @param {any} data
    */
   notify(serviceName, eventName, data) {
     for (const handler of this.eventHandlers) {
       try {
         handler(serviceName, eventName, data);
       } catch (err) {
-        console.error(`Error in event handler for ${serviceName}.${eventName}:`, err);
+        console.error(
+          `Error in event handler for ${serviceName}.${eventName}:`,
+          err,
+        );
       }
     }
   }

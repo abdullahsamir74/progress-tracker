@@ -51,7 +51,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 .titlebar-btn:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -112,7 +114,7 @@
   color: var(--accent-primary);
 }
 .nav-btn.active::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
@@ -151,15 +153,23 @@
 
 /* Subtle gradient bg pattern */
 #main-content::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   right: 0;
   width: calc(100% - var(--sidebar-width));
   height: 100%;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(124, 110, 240, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(78, 205, 196, 0.03) 0%, transparent 50%);
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(124, 110, 240, 0.03) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(78, 205, 196, 0.03) 0%,
+      transparent 50%
+    );
   pointer-events: none;
   z-index: 0;
 }
@@ -181,8 +191,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .view-header {

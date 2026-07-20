@@ -37,7 +37,8 @@ class TimerService {
 
     this._interval = setInterval(() => {
       if (!this._state.paused) {
-        this._state.elapsedMs = Date.now() - this._state.startTime - this._state.totalPausedMs;
+        this._state.elapsedMs =
+          Date.now() - this._state.startTime - this._state.totalPausedMs;
         if (onTick) {
           onTick(this.getState());
         }
@@ -73,7 +74,8 @@ class TimerService {
         clearInterval(this._interval);
         this._interval = setInterval(() => {
           if (!this._state.paused) {
-            this._state.elapsedMs = Date.now() - this._state.startTime - this._state.totalPausedMs;
+            this._state.elapsedMs =
+              Date.now() - this._state.startTime - this._state.totalPausedMs;
             onTick(this.getState());
           }
         }, 1000);
@@ -96,9 +98,13 @@ class TimerService {
     // Calculate final elapsed time
     let finalElapsedMs;
     if (this._state.paused) {
-      finalElapsedMs = this._state.pausedTime - this._state.startTime - this._state.totalPausedMs;
+      finalElapsedMs =
+        this._state.pausedTime -
+        this._state.startTime -
+        this._state.totalPausedMs;
     } else {
-      finalElapsedMs = Date.now() - this._state.startTime - this._state.totalPausedMs;
+      finalElapsedMs =
+        Date.now() - this._state.startTime - this._state.totalPausedMs;
     }
 
     const session = {
@@ -107,7 +113,8 @@ class TimerService {
       startTime: new Date(this._state.startTime).toISOString(),
       endTime: new Date().toISOString(),
       durationMs: Math.max(0, finalElapsedMs),
-      durationMinutes: Math.round(Math.max(0, finalElapsedMs) / 60000 * 100) / 100,
+      durationMinutes:
+        Math.round((Math.max(0, finalElapsedMs) / 60000) * 100) / 100,
       estimateMinutes: this._state.estimateMinutes,
     };
 
@@ -146,7 +153,7 @@ class TimerService {
 
     let progress = 0;
     if (this._state.estimateMinutes && this._state.estimateMinutes > 0) {
-      progress = Math.min(1, (elapsedMs / 60000) / this._state.estimateMinutes);
+      progress = Math.min(1, elapsedMs / 60000 / this._state.estimateMinutes);
     }
 
     return {
@@ -156,7 +163,7 @@ class TimerService {
       taskName: this._state.taskName,
       estimateMinutes: this._state.estimateMinutes,
       elapsedMs,
-      elapsedFormatted: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
+      elapsedFormatted: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
       progress,
       hours,
       minutes,

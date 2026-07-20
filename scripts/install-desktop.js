@@ -1,21 +1,28 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { execSync } = require('child_process');
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+const { execSync } = require("child_process");
 
 try {
   const homeDir = os.homedir();
   const projectDir = process.cwd();
-  
+
   // Resolve paths
   const nodeBinary = process.execPath;
-  const electronCli = path.join(projectDir, 'node_modules', 'electron', 'cli.js');
-  const iconPath = path.join(projectDir, 'src', 'renderer', 'icon.png');
-  const destDir = path.join(homeDir, '.local', 'share', 'applications');
-  const destFile = path.join(destDir, 'track-it.desktop');
+  const electronCli = path.join(
+    projectDir,
+    "node_modules",
+    "electron",
+    "cli.js",
+  );
+  const iconPath = path.join(projectDir, "src", "renderer", "icon.png");
+  const destDir = path.join(homeDir, ".local", "share", "applications");
+  const destFile = path.join(destDir, "track-it.desktop");
 
   if (!fs.existsSync(electronCli)) {
-    console.error('Error: Electron dependency not found. Please run "npm install" first.');
+    console.error(
+      'Error: Electron dependency not found. Please run "npm install" first.',
+    );
     process.exit(1);
   }
 
@@ -38,25 +45,25 @@ StartupWMClass=track-it
 StartupNotify=true
 `;
 
-  fs.writeFileSync(destFile, desktopEntry, 'utf8');
-  fs.chmodSync(destFile, '755');
+  fs.writeFileSync(destFile, desktopEntry, "utf8");
+  fs.chmodSync(destFile, "755");
 
   // Update desktop database if possible
   try {
-    execSync(`update-desktop-database ${destDir}`, { stdio: 'ignore' });
+    execSync(`update-desktop-database ${destDir}`, { stdio: "ignore" });
   } catch (e) {
     // Ignore database update failures if utility is absent
   }
 
-  console.log('\n==================================================');
-  console.log('🎉 Desktop shortcut registered successfully!');
+  console.log("\n==================================================");
+  console.log("🎉 Desktop shortcut registered successfully!");
   console.log(`Location: ${destFile}`);
-  console.log('\nInstructions to pin:');
-  console.log('1. Press Super/Win key to open GNOME Activities.');
+  console.log("\nInstructions to pin:");
+  console.log("1. Press Super/Win key to open GNOME Activities.");
   console.log('2. Search for "TRACK IT".');
   console.log('3. Right-click the app icon and select "Add to Favorites".');
-  console.log('==================================================\n');
+  console.log("==================================================\n");
 } catch (error) {
-  console.error('Failed to create desktop shortcut:', error.message);
+  console.error("Failed to create desktop shortcut:", error.message);
   process.exit(1);
 }

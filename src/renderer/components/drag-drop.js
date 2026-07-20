@@ -2,15 +2,15 @@
    COMPONENT — Drag & Drop (Schedule task reordering)
    ======================================== */
 
-import { taskOrder, setTaskOrder } from '../state.js';
+import { taskOrder, setTaskOrder } from "../state.js";
 
 /**
  * Initialize mouse-based drag-and-drop on a task list element.
  * Used by the schedule view for task reordering.
  */
 export function initDragAndDrop(listEl) {
-  if (listEl.dataset.dragInitDone === 'true') return;
-  listEl.dataset.dragInitDone = 'true';
+  if (listEl.dataset.dragInitDone === "true") return;
+  listEl.dataset.dragInitDone = "true";
 
   let draggedItem = null;
   let placeholder = null;
@@ -21,20 +21,27 @@ export function initDragAndDrop(listEl) {
   let hasDragged = false;
 
   function getVisualChildren() {
-    return [...listEl.children].filter(el =>
-      el !== draggedItem &&
-      !el.classList.contains('drag-placeholder') &&
-      !el.classList.contains('dragging')
+    return [...listEl.children].filter(
+      (el) =>
+        el !== draggedItem &&
+        !el.classList.contains("drag-placeholder") &&
+        !el.classList.contains("dragging"),
     );
   }
 
   function onMouseDown(e) {
     // Prevent drag initiation when clicking interactive components
-    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('a') || e.target.closest('.task-actions') || e.target.closest('.task-checkbox')) {
+    if (
+      e.target.closest("button") ||
+      e.target.closest("input") ||
+      e.target.closest("a") ||
+      e.target.closest(".task-actions") ||
+      e.target.closest(".task-checkbox")
+    ) {
       return;
     }
 
-    const item = e.target.closest('.task-item, .timer-task-option');
+    const item = e.target.closest(".task-item, .timer-task-option");
     if (!item) return;
 
     draggedItem = item;
@@ -46,8 +53,8 @@ export function initDragAndDrop(listEl) {
     const rect = item.getBoundingClientRect();
     offsetY = e.clientY - rect.top;
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
   }
 
   function onMouseMove(e) {
@@ -65,23 +72,26 @@ export function initDragAndDrop(listEl) {
         const rect = draggedItem.getBoundingClientRect();
 
         // Create placeholder
-        placeholder = document.createElement('div');
-        const isTimerOption = draggedItem.classList.contains('timer-task-option');
-        placeholder.className = isTimerOption ? 'timer-task-option drag-placeholder' : 'task-item drag-placeholder';
-        placeholder.style.height = rect.height + 'px';
+        placeholder = document.createElement("div");
+        const isTimerOption =
+          draggedItem.classList.contains("timer-task-option");
+        placeholder.className = isTimerOption
+          ? "timer-task-option drag-placeholder"
+          : "task-item drag-placeholder";
+        placeholder.style.height = rect.height + "px";
 
         // Style the dragged item as floating
-        draggedItem.classList.add('dragging');
-        draggedItem.style.position = 'fixed';
-        draggedItem.style.width = rect.width + 'px';
-        draggedItem.style.top = rect.top + 'px';
-        draggedItem.style.left = rect.left + 'px';
-        draggedItem.style.zIndex = '1000';
-        draggedItem.style.pointerEvents = 'none';
+        draggedItem.classList.add("dragging");
+        draggedItem.style.position = "fixed";
+        draggedItem.style.width = rect.width + "px";
+        draggedItem.style.top = rect.top + "px";
+        draggedItem.style.left = rect.left + "px";
+        draggedItem.style.zIndex = "1000";
+        draggedItem.style.pointerEvents = "none";
 
         // Insert placeholder where the item was
         draggedItem.parentNode.insertBefore(placeholder, draggedItem);
-        document.body.style.cursor = 'grabbing';
+        document.body.style.cursor = "grabbing";
       } else {
         return;
       }
@@ -89,7 +99,7 @@ export function initDragAndDrop(listEl) {
 
     // Move the floating item
     const newTop = e.clientY - offsetY;
-    draggedItem.style.top = newTop + 'px';
+    draggedItem.style.top = newTop + "px";
 
     // Find which child element we're hovering over
     const elements = getVisualChildren();
@@ -116,9 +126,9 @@ export function initDragAndDrop(listEl) {
   }
 
   function onMouseUp() {
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-    document.body.style.cursor = '';
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    document.body.style.cursor = "";
 
     if (isDragging && draggedItem && placeholder) {
       // Place the real item where the placeholder is
@@ -128,13 +138,13 @@ export function initDragAndDrop(listEl) {
       }
 
       // Reset styles
-      draggedItem.classList.remove('dragging');
-      draggedItem.style.position = '';
-      draggedItem.style.width = '';
-      draggedItem.style.top = '';
-      draggedItem.style.left = '';
-      draggedItem.style.zIndex = '';
-      draggedItem.style.pointerEvents = '';
+      draggedItem.classList.remove("dragging");
+      draggedItem.style.position = "";
+      draggedItem.style.width = "";
+      draggedItem.style.top = "";
+      draggedItem.style.left = "";
+      draggedItem.style.zIndex = "";
+      draggedItem.style.pointerEvents = "";
 
       // Save the new order
       saveCurrentOrder(listEl);
@@ -144,11 +154,11 @@ export function initDragAndDrop(listEl) {
         const captureClick = (e) => {
           e.stopPropagation();
           e.preventDefault();
-          document.removeEventListener('click', captureClick, true);
+          document.removeEventListener("click", captureClick, true);
         };
-        document.addEventListener('click', captureClick, true);
+        document.addEventListener("click", captureClick, true);
         setTimeout(() => {
-          document.removeEventListener('click', captureClick, true);
+          document.removeEventListener("click", captureClick, true);
         }, 50);
       }
     }
@@ -159,15 +169,17 @@ export function initDragAndDrop(listEl) {
     hasDragged = false;
   }
 
-  listEl.addEventListener('mousedown', onMouseDown);
+  listEl.addEventListener("mousedown", onMouseDown);
 }
 
 /**
  * Persist the current visual order of task items.
  */
 export async function saveCurrentOrder(listEl) {
-  const items = listEl.querySelectorAll('.task-item[data-task-id], .timer-task-option[data-task-id]');
-  const orderedIds = [...items].map(el => el.dataset.taskId);
+  const items = listEl.querySelectorAll(
+    ".task-item[data-task-id], .timer-task-option[data-task-id]",
+  );
+  const orderedIds = [...items].map((el) => el.dataset.taskId);
   setTaskOrder(orderedIds);
   await window.tracker.saveTaskOrder(orderedIds);
 }

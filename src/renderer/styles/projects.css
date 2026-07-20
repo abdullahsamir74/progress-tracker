@@ -26,7 +26,10 @@
   background: var(--bg-card);
   border: 1px solid var(--bg-glass-border);
   border-radius: var(--radius-md);
-  transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .project-card.drag-over {
@@ -120,7 +123,10 @@
   background: none;
   border: none;
   cursor: pointer;
-  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast),
+    background var(--transition-fast);
   color: var(--text-muted);
   padding: 6px;
   border-radius: var(--radius-sm);
@@ -148,9 +154,10 @@
   overflow: hidden;
   padding: 0 var(--space-md);
   border-top: 1px solid transparent;
-  transition: max-height var(--transition-slow) ease,
-              padding var(--transition-fast) ease,
-              border-color var(--transition-fast) ease;
+  transition:
+    max-height var(--transition-slow) ease,
+    padding var(--transition-fast) ease,
+    border-color var(--transition-fast) ease;
 }
 .project-card.expanded .project-card-body {
   max-height: 2000px;
@@ -215,7 +222,9 @@
   overflow-y: auto;
   min-height: 150px;
   padding: 2px;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
   border-radius: var(--radius-sm);
   border: 1px dashed transparent;
 }

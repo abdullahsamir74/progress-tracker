@@ -3,10 +3,18 @@
    ======================================== */
 
 /* --- Text Utilities --- */
-.text-accent { color: var(--accent-primary); }
-.text-secondary { color: var(--text-secondary); }
-.text-green { color: var(--accent-green); }
-.text-pink { color: var(--accent-pink); }
+.text-accent {
+  color: var(--accent-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-green {
+  color: var(--accent-green);
+}
+.text-pink {
+  color: var(--accent-pink);
+}
 
 /* --- Badge --- */
 .badge {
@@ -59,7 +67,9 @@
   animation: spin 0.6s linear infinite;
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Responsive --- */

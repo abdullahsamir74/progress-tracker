@@ -63,7 +63,7 @@
   border-color: var(--accent-primary);
 }
 .task-checkbox.checked::after {
-  content: '✓';
+  content: "✓";
   color: white;
   font-size: 12px;
   font-weight: 700;

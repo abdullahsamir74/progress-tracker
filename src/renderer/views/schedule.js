@@ -2,42 +2,41 @@
    VIEW — Schedule
    ======================================== */
 
-import {
-  calendarEvents, trackedTasks, taskOrder,
-} from '../state.js';
-import { createTaskItem } from '../components/task-item.js';
-import { openAddTaskModal } from '../components/modals.js';
-import { initDragAndDrop } from '../components/drag-drop.js';
-import { getLocalDateString, getCombinedEvents } from '../utils.js';
+import { calendarEvents, trackedTasks, taskOrder } from "../state.js";
+import { createTaskItem } from "../components/task-item.js";
+import { openAddTaskModal } from "../components/modals.js";
+import { initDragAndDrop } from "../components/drag-drop.js";
+import { getLocalDateString, getCombinedEvents } from "../utils.js";
 
 /**
  * Render the schedule view (filters + event list).
  */
 export async function renderSchedule() {
-  const taskListEl = document.getElementById('schedule-task-list');
-  const filterBtns = document.querySelectorAll('.filter-btn');
+  const taskListEl = document.getElementById("schedule-task-list");
+  const filterBtns = document.querySelectorAll(".filter-btn");
 
   // Filter click handlers
-  filterBtns.forEach(btn => {
+  filterBtns.forEach((btn) => {
     btn.onclick = async () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
       await renderScheduleList(btn.dataset.filter);
     };
   });
 
-  const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+  const activeFilter =
+    document.querySelector(".filter-btn.active")?.dataset.filter || "all";
   await renderScheduleList(activeFilter);
 
   // Add task button
-  document.getElementById('btn-add-task').onclick = () => openAddTaskModal();
+  document.getElementById("btn-add-task").onclick = () => openAddTaskModal();
 }
 
 /**
  * Render the filtered & grouped task list for the schedule view.
  */
 async function renderScheduleList(filter) {
-  const taskListEl = document.getElementById('schedule-task-list');
+  const taskListEl = document.getElementById("schedule-task-list");
   const todayStr = getLocalDateString();
   const now = new Date();
 
@@ -45,12 +44,12 @@ async function renderScheduleList(filter) {
   let allItems = getCombinedEvents(calendarEvents, trackedTasks);
 
   // Apply filter
-  if (filter === 'today') {
-    allItems = allItems.filter(e => getLocalDateString(e.start) === todayStr);
-  } else if (filter === 'upcoming') {
-    allItems = allItems.filter(e => new Date(e.start) >= now);
-  } else if (filter === 'past') {
-    allItems = allItems.filter(e => new Date(e.start) < now);
+  if (filter === "today") {
+    allItems = allItems.filter((e) => getLocalDateString(e.start) === todayStr);
+  } else if (filter === "upcoming") {
+    allItems = allItems.filter((e) => new Date(e.start) >= now);
+  } else if (filter === "past") {
+    allItems = allItems.filter((e) => new Date(e.start) < now);
   }
 
   // Sort chronologically by default
@@ -72,7 +71,7 @@ async function renderScheduleList(filter) {
 
   // Group by date
   const groups = {};
-  allItems.forEach(item => {
+  allItems.forEach((item) => {
     const dateKey = getLocalDateString(item.start);
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push(item);
@@ -81,7 +80,7 @@ async function renderScheduleList(filter) {
   // Sort inside each date group using custom taskOrder
   if (taskOrder.length > 0) {
     const orderMap = {};
-    taskOrder.forEach((id, i) => orderMap[id] = i);
+    taskOrder.forEach((id, i) => (orderMap[id] = i));
     for (const dateKey of Object.keys(groups)) {
       groups[dateKey].sort((a, b) => {
         const oa = orderMap[a.id] !== undefined ? orderMap[a.id] : 99999;
@@ -91,19 +90,24 @@ async function renderScheduleList(filter) {
     }
   }
 
-  taskListEl.innerHTML = '';
+  taskListEl.innerHTML = "";
   for (const [dateKey, items] of Object.entries(groups)) {
-    const header = document.createElement('div');
-    header.className = 'schedule-date-header';
-    const dateObj = new Date(dateKey + 'T00:00:00');
+    const header = document.createElement("div");
+    header.className = "schedule-date-header";
+    const dateObj = new Date(dateKey + "T00:00:00");
     if (dateKey === todayStr) {
-      header.textContent = 'Today';
+      header.textContent = "Today";
     } else {
-      header.textContent = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      header.textContent = dateObj.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
     }
     taskListEl.appendChild(header);
 
-    items.forEach(item => {
+    items.forEach((item) => {
       taskListEl.appendChild(createTaskItem(item, true, timerState));
     });
   }
