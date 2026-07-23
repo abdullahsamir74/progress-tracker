@@ -335,17 +335,42 @@ body {
   padding: var(--space-sm);
 }
 
+/* --- Custom Matte Scrollbars --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-hover);
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 .streak-badge {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: var(--bg-card);
-  border: 1px solid var(--bg-glass-border);
+  background: rgba(249, 115, 22, 0.08);
+  border: 1px solid rgba(249, 115, 22, 0.25);
   border-radius: var(--radius-sm);
-  color: var(--accent-orange);
+  color: #f97316;
   font-size: 12px;
   font-weight: 600;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.streak-badge:hover {
+  transform: translateY(-1px);
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.25);
 }
 
 #main-content {

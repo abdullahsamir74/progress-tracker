@@ -19,14 +19,18 @@
   border: 1px solid var(--bg-glass-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-fast);
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow 0.2s ease;
   cursor: grab;
 }
 .task-item:hover {
   background: var(--bg-card-hover);
-  border-color: var(--bg-hover);
-  transform: translateX(3px);
-  box-shadow: var(--shadow-md);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 .task-item.completed {
   opacity: 0.55;
@@ -41,6 +45,7 @@
   height: 32px;
   border-radius: 2px;
   flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
 }
 
 /* --- Checkbox --- */

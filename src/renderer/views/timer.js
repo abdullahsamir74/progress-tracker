@@ -160,6 +160,15 @@ export function updateTimerDisplay(state) {
     ring.style.strokeDashoffset = offset;
   }
 
+  const ringWrapper = document.querySelector(".timer-ring-wrapper");
+  if (ringWrapper) {
+    if (state.running && !state.paused) {
+      ringWrapper.classList.add("running");
+    } else {
+      ringWrapper.classList.remove("running");
+    }
+  }
+
   // Update estimate bar
   if (state.estimateMinutes) {
     const fill = document.getElementById("timer-estimate-fill");

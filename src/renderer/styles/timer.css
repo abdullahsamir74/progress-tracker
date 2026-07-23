@@ -30,6 +30,19 @@
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear;
 }
+.timer-ring-wrapper.running .timer-ring-progress {
+  stroke: #38bdf8;
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.85));
+  }
+}
 .timer-display {
   position: absolute;
   top: 50%;
