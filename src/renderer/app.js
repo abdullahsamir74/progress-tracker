@@ -56,9 +56,9 @@ async function loadViewTemplates() {
   const modalsSlot = document.getElementById("modals-slot");
   const mainContent = document.getElementById("main-content");
 
-  if (titlebarSlot) titlebarSlot.innerHTML = titlebarHtml;
-  if (sidebarSlot) sidebarSlot.innerHTML = sidebarHtml;
-  if (modalsSlot) modalsSlot.innerHTML = modalsHtml;
+  if (titlebarSlot) titlebarSlot.outerHTML = titlebarHtml;
+  if (sidebarSlot) sidebarSlot.outerHTML = sidebarHtml;
+  if (modalsSlot) modalsSlot.outerHTML = modalsHtml;
 
   const views = [
     "dashboard",
