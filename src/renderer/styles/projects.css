@@ -104,6 +104,33 @@
   border-radius: 12px;
   font-weight: 500;
 }
+.project-target-badge {
+  font-size: 11px;
+  color: var(--accent-secondary);
+  background: rgba(78, 205, 196, 0.1);
+  border: 1px solid rgba(78, 205, 196, 0.25);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.project-target-progress-wrapper {
+  margin-top: var(--space-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.project-target-progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.project-target-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
 
 /* --- Chevron --- */
 .project-chevron {

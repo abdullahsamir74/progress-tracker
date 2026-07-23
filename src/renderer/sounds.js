@@ -13,6 +13,9 @@ function getAudioContext() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume().catch(() => {});
+  }
   return audioCtx;
 }
 
@@ -88,11 +91,4 @@ export function playAlarmSound() {
  */
 export function playTimerStopSound() {
   playDigitalBeep(0, 0.12, 0.12);
-}
-
-/**
- * Alias kept for compatibility with app.js import.
- */
-export function playEstimateCompleteSound() {
-  playAlarmBurst(0);
 }

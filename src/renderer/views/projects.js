@@ -63,8 +63,12 @@ export async function renderProjects() {
   unassignedPool.innerHTML = "";
 
   let timerState = null;
+  let analytics = null;
+  let targets = {};
   try {
     timerState = await window.tracker.getTimerState();
+    analytics = await window.tracker.getAnalytics("week");
+    targets = (await window.tracker.getWeeklyTargets()) || {};
   } catch (e) {}
 
   const projects = Object.values(customProjects);
@@ -119,6 +123,24 @@ export async function renderProjects() {
       card.className = `project-card ${isExpanded ? "expanded" : ""}`;
       card.dataset.projectId = project.id;
 
+      const targetHours = targets[project.id] || 0;
+      const projMins = analytics?.weeklyProjectMinutes?.[project.id] || 0;
+      const projHours = Math.round((projMins / 60) * 10) / 10;
+      const percent =
+        targetHours > 0
+          ? Math.min(100, Math.round((projHours / targetHours) * 100))
+          : 0;
+
+      const targetBadge =
+        targetHours > 0
+          ? `<span class="project-target-badge" title="Weekly goal progress">${projHours}h / ${targetHours}h (${percent}%)</span>`
+          : "";
+
+      const progressBar =
+        targetHours > 0
+          ? `<div class="project-target-progress-wrapper"><div class="project-target-progress-bar"><div class="project-target-progress-fill" style="width: ${percent}%; background: ${project.color};"></div></div></div>`
+          : "";
+
       card.innerHTML = `
         <div class="project-card-header">
           <div class="project-drag-handle" title="Drag to reorder projects">
@@ -137,8 +159,9 @@ export async function renderProjects() {
             <div class="project-color-dot" style="background: ${project.color};"></div>
             <span class="project-title">${escapeHtml(project.name)}</span>
             <span class="project-task-count">${projectTasks[project.id].length} tasks</span>
+            ${targetBadge}
           </div>
-          <button class="btn-edit-project" data-project-id="${project.id}" title="Rename project">
+          <button class="btn-edit-project" data-project-id="${project.id}" title="Rename or edit project">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -151,6 +174,7 @@ export async function renderProjects() {
             </svg>
           </button>
         </div>
+        ${progressBar}
         <div class="project-card-body">
           <div class="project-task-list" data-project-id="${project.id}">
             <!-- Assigned tasks -->
@@ -194,19 +218,20 @@ export async function renderProjects() {
 
       card
         .querySelector(".btn-delete-project")
-        .addEventListener("click", async (e) => {
+        .addEventListener("click", (e) => {
           e.stopPropagation();
-          if (
-            confirm(
-              `Are you sure you want to delete project "${project.name}"? Tasks in it will return to Unassigned.`,
-            )
-          ) {
-            await window.tracker.deleteProject(project.id);
-            delete expandedProjects[project.id];
-            setCustomProjects(await window.tracker.getProjects());
-            setTrackedTasks(await window.tracker.getTasks());
-            renderProjects();
-          }
+          showConfirmDialog({
+            title: "Delete Project?",
+            message: `Are you sure you want to delete project "<strong>${escapeHtml(project.name)}</strong>"? Tasks in it will return to Unassigned.`,
+            confirmText: "Delete Project",
+            onConfirm: async () => {
+              await window.tracker.deleteProject(project.id);
+              delete expandedProjects[project.id];
+              setCustomProjects(await window.tracker.getProjects());
+              setTrackedTasks(await window.tracker.getTasks());
+              renderProjects();
+            },
+          });
         });
 
       projectsStack.appendChild(card);

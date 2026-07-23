@@ -99,7 +99,9 @@ export async function renderDashboard() {
   try {
     const analytics = await window.tracker.getAnalytics("week");
     document.getElementById("streak-count").textContent = analytics.streak || 0;
-  } catch (e) {}
+  } catch (e) {
+    console.error("Error loading dashboard streak:", e);
+  }
 
   // Today's task list
   const taskListEl = document.getElementById("dashboard-task-list");

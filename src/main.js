@@ -6,11 +6,9 @@ const TimerService = require("./services/timer-service");
 const TrackerFacade = require("./services/tracker-facade");
 const ServiceManager = require("./services/service-manager");
 
-let mainWindow;
-let calendarService;
-let trackingService;
-let timerService;
-let serviceManager;
+let mainWindow = null;
+let trackingService = null;
+let timerService = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -38,68 +36,82 @@ function createWindow() {
   if (process.argv.includes("--dev")) {
     mainWindow.webContents.openDevTools();
   }
+
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
 }
 
 app.whenReady().then(async () => {
-  // Initialize core services
-  calendarService = new CalendarService();
-  trackingService = new TrackingService();
-  timerService = new TimerService();
+  try {
+    const calendarService = new CalendarService();
+    trackingService = new TrackingService();
+    timerService = new TimerService();
 
-  // Initialize facade & manager
-  const trackerFacade = new TrackerFacade(
-    trackingService,
-    timerService,
-    calendarService,
-  );
-  serviceManager = new ServiceManager();
+    const trackerFacade = new TrackerFacade(
+      trackingService,
+      timerService,
+      calendarService,
+    );
+    const serviceManager = new ServiceManager();
 
-  // Register services
-  serviceManager.register("tracker", trackerFacade);
-  serviceManager.register("timer", timerService);
+    serviceManager.register("tracker", trackerFacade);
+    serviceManager.register("timer", timerService);
 
-  // Hook up dynamic event forwarding
-  serviceManager.onEvent((serviceName, eventName, data) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send(`${serviceName}-${eventName}`, data);
-    }
-  });
+    serviceManager.onEvent((serviceName, eventName, data) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send(`${serviceName}-${eventName}`, data);
+      }
+    });
 
-  // Watch calendar for changes
-  calendarService.watchForChanges((events) => {
-    serviceManager.notify("calendar", "updated", events);
-  });
+    calendarService.watchForChanges((events) => {
+      serviceManager.notify("calendar", "updated", events);
+    });
 
-  // Register IPC handlers
-  registerIpcHandlers();
-
-  createWindow();
+    registerIpcHandlers(serviceManager);
+    createWindow();
+  } catch (err) {
+    console.error("Failed to initialize application services:", err);
+  }
 });
 
 app.on("window-all-closed", () => {
-  // Auto-save any running timer
-  if (timerService.isRunning()) {
-    const session = timerService.stop();
-    if (session) {
-      trackingService.saveSession(session);
+  if (timerService && timerService.isRunning()) {
+    try {
+      const session = timerService.stop();
+      if (session && trackingService) {
+        trackingService.saveSession(session);
+      }
+    } catch (err) {
+      console.error("Error saving running timer on shutdown:", err);
     }
   }
   app.quit();
 });
 
-function registerIpcHandlers() {
-  // Window controls (shell/OS tasks)
-  ipcMain.on("window-minimize", () => mainWindow.minimize());
-  ipcMain.on("window-maximize", () => {
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow.maximize();
+function registerIpcHandlers(serviceManager) {
+  ipcMain.on("window-minimize", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.minimize();
     }
   });
-  ipcMain.on("window-close", () => mainWindow.close());
 
-  // Unified dynamic service call router
+  ipcMain.on("window-maximize", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+  });
+
+  ipcMain.on("window-close", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.close();
+    }
+  });
+
   ipcMain.handle(
     "service-invoke",
     async (event, serviceName, methodName, ...args) => {
@@ -107,7 +119,7 @@ function registerIpcHandlers() {
         return await serviceManager.invoke(serviceName, methodName, ...args);
       } catch (err) {
         console.error(
-          `Error in IPC service call: ${serviceName}.${methodName}:`,
+          `Error in IPC service call ${serviceName}.${methodName}:`,
           err,
         );
         throw err;

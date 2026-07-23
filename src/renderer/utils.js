@@ -4,13 +4,14 @@
 
 /**
  * Format a duration in minutes to a human-readable string.
- * @param {number} minutes
+ * @param {number|string} minutes
  * @returns {string} e.g. "1h 30m", "45m", "2h"
  */
 export function formatDuration(minutes) {
-  if (!minutes || minutes <= 0) return "0m";
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
+  const num = typeof minutes === "number" ? minutes : parseFloat(minutes);
+  if (isNaN(num) || num <= 0) return "0m";
+  const h = Math.floor(num / 60);
+  const m = Math.round(num % 60);
   if (h === 0) return `${m}m`;
   if (m === 0) return `${h}h`;
   return `${h}h ${m}m`;
@@ -18,13 +19,14 @@ export function formatDuration(minutes) {
 
 /**
  * Escape HTML special characters to prevent XSS.
- * @param {string} text
+ * @param {any} text
  * @returns {string}
  */
 export function escapeHtml(text) {
-  if (!text) return "";
+  if (text === null || text === undefined) return "";
+  const str = String(text);
   const div = document.createElement("div");
-  div.textContent = text;
+  div.textContent = str;
   return div.innerHTML;
 }
 

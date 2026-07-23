@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld("tracker", {
   getCalendarEvents: () => invokeTracker("getCalendarEvents"),
   getCalendars: () => invokeTracker("getCalendars"),
   onCalendarUpdated: (callback) => {
+    ipcRenderer.removeAllListeners("calendar-updated");
     ipcRenderer.on("calendar-updated", (event, data) => callback(data));
   },
 
@@ -39,6 +40,7 @@ contextBridge.exposeInMainWorld("tracker", {
   stopTimer: () => invokeTracker("stopTimer"),
   getTimerState: () => invokeTracker("getTimerState"),
   onTimerTick: (callback) => {
+    ipcRenderer.removeAllListeners("timer-tick");
     ipcRenderer.on("timer-tick", (event, data) => callback(data));
   },
 
@@ -64,4 +66,9 @@ contextBridge.exposeInMainWorld("tracker", {
   getHabits: () => invokeTracker("getHabits"),
   saveHabit: (habit) => invokeTracker("saveHabit", habit),
   deleteHabit: (habitId) => invokeTracker("deleteHabit", habitId),
+
+  // Weekly Targets
+  getWeeklyTargets: () => invokeTracker("getWeeklyTargets"),
+  saveWeeklyTarget: (targetKey, hours) =>
+    invokeTracker("saveWeeklyTarget", targetKey, hours),
 });

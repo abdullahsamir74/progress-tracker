@@ -16,6 +16,7 @@ class Store {
       analyticsChart: null,
       taskOrder: [],
       projectOrder: [],
+      weeklyTargets: {},
     };
     this.listeners = [];
   }
@@ -41,6 +42,7 @@ class Store {
     analyticsChart = this.state.analyticsChart;
     taskOrder = this.state.taskOrder;
     projectOrder = this.state.projectOrder;
+    weeklyTargets = this.state.weeklyTargets;
 
     this.notify();
   }
@@ -79,6 +81,7 @@ export let selectedTimerTask = null;
 export let analyticsChart = null;
 export let taskOrder = [];
 export let projectOrder = [];
+export let weeklyTargets = {};
 
 // ---- State setters invoking the store ----
 export function setCalendarEvents(val) {
@@ -111,6 +114,9 @@ export function setTaskOrder(val) {
 export function setProjectOrder(val) {
   storeInstance.updateState({ projectOrder: val });
 }
+export function setWeeklyTargets(val) {
+  storeInstance.updateState({ weeklyTargets: val });
+}
 
 // Expose store subscription if views want to register reactive updates
 export const subscribeToState = (listener) => storeInstance.subscribe(listener);
@@ -125,18 +131,38 @@ export function registerViewRenderers(renderers) {
 // ---- Data Loading ----
 export async function loadData() {
   try {
-    const [events, tasks, timerState, projects, habitsData] = await Promise.all(
-      [
-        window.tracker.getCalendarEvents(),
-        window.tracker.getTasks(),
-        window.tracker.getTimerState(),
-        window.tracker.getProjects(),
-        window.tracker.getHabits(),
-      ],
-    );
+    const [events, tasks, timerState, projects, habitsData, targets] =
+      await Promise.all([
+        window.tracker.getCalendarEvents().catch((err) => {
+          console.error("Failed to load calendar events:", err);
+          return [];
+        }),
+        window.tracker.getTasks().catch((err) => {
+          console.error("Failed to load tasks:", err);
+          return {};
+        }),
+        window.tracker.getTimerState().catch((err) => {
+          console.error("Failed to load timer state:", err);
+          return null;
+        }),
+        window.tracker.getProjects().catch((err) => {
+          console.error("Failed to load projects:", err);
+          return {};
+        }),
+        window.tracker.getHabits().catch((err) => {
+          console.error("Failed to load habits:", err);
+          return {};
+        }),
+        window.tracker.getWeeklyTargets().catch((err) => {
+          console.error("Failed to load weekly targets:", err);
+          return {};
+        }),
+      ]);
 
-    const taskOrderVal = (await window.tracker.getTaskOrder()) || [];
-    const projectOrderVal = (await window.tracker.getProjectOrder()) || [];
+    const taskOrderVal =
+      (await window.tracker.getTaskOrder().catch(() => [])) || [];
+    const projectOrderVal =
+      (await window.tracker.getProjectOrder().catch(() => [])) || [];
 
     storeInstance.updateState({
       calendarEvents: events || [],
@@ -145,6 +171,7 @@ export async function loadData() {
       habits: habitsData || {},
       taskOrder: taskOrderVal,
       projectOrder: projectOrderVal,
+      weeklyTargets: targets || {},
     });
 
     // Import updateTimerDisplay dynamically to avoid circular dependency

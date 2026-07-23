@@ -22,8 +22,31 @@ class TrackingService {
         projects: {},
         projectOrder: [],
         habits: {},
+        weeklyTargets: {},
       },
     });
+  }
+
+  /**
+   * Get all weekly time targets
+   */
+  getWeeklyTargets() {
+    return this.store.get("weeklyTargets", {});
+  }
+
+  /**
+   * Save or delete a weekly time target (targetKey can be "global" or a projectId)
+   */
+  saveWeeklyTarget(targetKey, hours) {
+    const targets = this.store.get("weeklyTargets", {});
+    const val = parseFloat(hours);
+    if (isNaN(val) || val <= 0) {
+      delete targets[targetKey];
+    } else {
+      targets[targetKey] = Math.round(val * 10) / 10;
+    }
+    this.store.set("weeklyTargets", targets);
+    return targets;
   }
 
   /**
@@ -280,13 +303,55 @@ class TrackingService {
     }
 
     if (checkDate) {
-      while (true) {
+      let maxDaysCheck = 1000;
+      while (maxDaysCheck-- > 0) {
         const key = getLocalDateString(checkDate);
         if (sessionsByDate[key] > 0) {
           streak++;
           checkDate.setDate(checkDate.getDate() - 1);
         } else {
           break;
+        }
+      }
+    }
+
+    // 365-day Heatmap Data (from all sessions)
+    const yearAgo = new Date(now);
+    yearAgo.setDate(now.getDate() - 364);
+    yearAgo.setHours(0, 0, 0, 0);
+
+    const heatmapData = {};
+    for (const s of allSessions) {
+      if (!s.startTime) continue;
+      const d = new Date(s.startTime);
+      if (d >= yearAgo) {
+        const key = getLocalDateString(d);
+        if (key) {
+          heatmapData[key] = (heatmapData[key] || 0) + (s.durationMinutes || 0);
+        }
+      }
+    }
+
+    // Current Week Minutes (start of current week: Sunday)
+    const currentWeekStart = new Date(now);
+    currentWeekStart.setDate(now.getDate() - now.getDay());
+    currentWeekStart.setHours(0, 0, 0, 0);
+
+    const weeklyProjectMinutes = {};
+    let currentWeekTotalMinutes = 0;
+
+    for (const s of allSessions) {
+      if (!s.startTime) continue;
+      const d = new Date(s.startTime);
+      if (d >= currentWeekStart) {
+        const mins = s.durationMinutes || 0;
+        currentWeekTotalMinutes += mins;
+        if (s.taskId) {
+          const task = tasks[s.taskId];
+          if (task && task.projectId) {
+            weeklyProjectMinutes[task.projectId] =
+              (weeklyProjectMinutes[task.projectId] || 0) + mins;
+          }
         }
       }
     }
@@ -307,6 +372,9 @@ class TrackingService {
       streak,
       totalTrackedMinutes,
       totalSessions: filteredSessions.length,
+      heatmapData,
+      currentWeekTotalMinutes,
+      weeklyProjectMinutes,
     };
   }
 
@@ -375,7 +443,7 @@ class TrackingService {
    * Save custom task order
    */
   saveTaskOrder(orderedIds) {
-    this.store.set("taskOrder", orderedIds);
+    this.store.set("taskOrder", Array.isArray(orderedIds) ? orderedIds : []);
     return true;
   }
 
@@ -399,7 +467,10 @@ class TrackingService {
   saveProject(project) {
     const projects = this.store.get("projects", {});
     if (!project.id) {
-      project.id = "proj_" + Math.random().toString(36).substr(2, 9);
+      project.id =
+        "proj_" +
+        Date.now().toString(36) +
+        Math.random().toString(36).substring(2, 7);
       project.createdAt = new Date().toISOString();
     }
     projects[project.id] = {
@@ -446,7 +517,7 @@ class TrackingService {
         createdAt: new Date().toISOString(),
       };
     }
-    tasks[taskId].projectId = projectId;
+    tasks[taskId].projectId = projectId || null;
     tasks[taskId].updatedAt = new Date().toISOString();
     this.store.set("tasks", tasks);
     return tasks[taskId];
@@ -456,7 +527,7 @@ class TrackingService {
    * Save custom project order
    */
   saveProjectOrder(orderedIds) {
-    this.store.set("projectOrder", orderedIds);
+    this.store.set("projectOrder", Array.isArray(orderedIds) ? orderedIds : []);
     return true;
   }
 
@@ -480,7 +551,10 @@ class TrackingService {
   saveHabit(habit) {
     const habits = this.store.get("habits", {});
     if (!habit.id) {
-      habit.id = "hab_" + Math.random().toString(36).substring(2, 11);
+      habit.id =
+        "hab_" +
+        Date.now().toString(36) +
+        Math.random().toString(36).substring(2, 7);
       habit.createdAt = new Date().toISOString();
       habit.history = habit.history || {};
     }

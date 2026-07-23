@@ -148,32 +148,37 @@ class CalendarService {
         if (!fs.existsSync(cal.icsPath)) continue;
 
         const data = ical.sync.parseFile(cal.icsPath);
+        if (!data) continue;
 
         for (const [key, event] of Object.entries(data)) {
-          if (event.type !== "VEVENT") continue;
+          if (!event || event.type !== "VEVENT") continue;
 
           const start = event.start ? new Date(event.start) : null;
           const end = event.end ? new Date(event.end) : null;
 
-          if (!start) continue;
+          if (!start || isNaN(start.getTime())) continue;
 
-          const durationMs = end ? end.getTime() - start.getTime() : 3600000; // default 1hr
-          const durationMinutes = Math.round(durationMs / 60000);
+          const durationMs =
+            end && !isNaN(end.getTime())
+              ? end.getTime() - start.getTime()
+              : 3600000; // default 1hr
+          const durationMinutes = Math.max(1, Math.round(durationMs / 60000));
 
           allEvents.push({
             id: event.uid || key,
             summary: event.summary || "Untitled",
             description: event.description || "",
             start: start.toISOString(),
-            end: end ? end.toISOString() : null,
+            end: end && !isNaN(end.getTime()) ? end.toISOString() : null,
             durationMinutes: durationMinutes,
             calendarId: cal.id,
             calendarName: cal.name,
             calendarColor: cal.color,
             location: event.location || "",
-            created: event.created
-              ? new Date(event.created).toISOString()
-              : null,
+            created:
+              event.created && !isNaN(new Date(event.created).getTime())
+                ? new Date(event.created).toISOString()
+                : null,
           });
         }
       } catch (err) {
@@ -197,17 +202,21 @@ class CalendarService {
     for (const cal of this.calendars) {
       try {
         const dir = path.dirname(cal.icsPath);
+        if (!fs.existsSync(dir)) continue;
+
         const watcher = fs.watch(
           dir,
           { persistent: false },
           async (eventType) => {
             if (eventType === "change") {
               // Debounce — wait 500ms for file to finish writing
-              clearTimeout(this._debounceTimer);
+              if (this._debounceTimer) clearTimeout(this._debounceTimer);
               this._debounceTimer = setTimeout(async () => {
                 try {
                   const events = await this.getEvents();
-                  callback(events);
+                  if (typeof callback === "function") {
+                    callback(events);
+                  }
                 } catch (err) {
                   console.error("Error re-reading calendar:", err);
                 }
@@ -223,8 +232,14 @@ class CalendarService {
   }
 
   stopWatching() {
+    if (this._debounceTimer) {
+      clearTimeout(this._debounceTimer);
+      this._debounceTimer = null;
+    }
     for (const watcher of this.watchers) {
-      watcher.close();
+      try {
+        watcher.close();
+      } catch (err) {}
     }
     this.watchers = [];
   }

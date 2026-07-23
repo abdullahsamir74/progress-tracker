@@ -27,11 +27,13 @@ export function createTaskItem(event, draggable = false, timerState = null) {
   item.dataset.taskId = event.id;
 
   const startTime = new Date(event.start);
-  const timeStr = startTime.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const timeStr = !isNaN(startTime.getTime())
+    ? startTime.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "";
   const estimate = task.estimateMinutes || event.durationMinutes || null;
   const tracked = task.totalTrackedMinutes || 0;
 

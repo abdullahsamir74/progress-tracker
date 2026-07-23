@@ -31,26 +31,42 @@ export function showConfirmDialog({
   `;
   document.body.appendChild(overlay);
 
+  const closeDialog = () => {
+    document.removeEventListener("keydown", onKeyDown);
+    overlay.remove();
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") {
+      closeDialog();
+    }
+  };
+  document.addEventListener("keydown", onKeyDown);
+
   document
     .getElementById("confirm-cancel")
-    .addEventListener("click", () => overlay.remove());
+    .addEventListener("click", closeDialog);
   overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.remove();
+    if (e.target === overlay) closeDialog();
   });
 
   document
     .getElementById("confirm-reset")
     .addEventListener("click", async () => {
-      if (onConfirm) {
-        await onConfirm();
-      } else {
-        // Backwards compatible default action
-        await window.tracker.resetAll();
-        setTrackedTasks({});
-        setTaskOrder([]);
+      try {
+        if (typeof onConfirm === "function") {
+          await onConfirm();
+        } else {
+          await window.tracker.resetAll();
+          setTrackedTasks({});
+          setTaskOrder([]);
+        }
+      } catch (err) {
+        console.error("Error in confirmation action:", err);
+      } finally {
+        closeDialog();
+        renderCurrentView();
       }
-      overlay.remove();
-      renderCurrentView();
     });
 }
 

@@ -202,21 +202,26 @@ export function enterFullscreenTimer() {
   const overlay = document.getElementById("fullscreen-timer-overlay");
   if (!overlay) return;
 
-  window.tracker.getTimerState().then((state) => {
-    if (state && state.running) {
-      document.getElementById("fullscreen-task-name").textContent =
-        state.taskName;
-      document.getElementById("fullscreen-timer-display").textContent =
-        state.elapsedFormatted;
-      overlay.style.display = "flex";
+  window.tracker
+    .getTimerState()
+    .then((state) => {
+      if (state && state.running) {
+        const nameEl = document.getElementById("fullscreen-task-name");
+        const dispEl = document.getElementById("fullscreen-timer-display");
+        if (nameEl) nameEl.textContent = state.taskName || "Untitled Task";
+        if (dispEl) dispEl.textContent = state.elapsedFormatted || "00:00:00";
+        overlay.style.display = "flex";
 
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch((err) => {
-          console.warn("Could not enter fullscreen mode:", err);
-        });
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch((err) => {
+            console.warn("Could not enter fullscreen mode:", err);
+          });
+        }
       }
-    }
-  });
+    })
+    .catch((err) => {
+      console.error("Error entering fullscreen timer:", err);
+    });
 }
 
 /**

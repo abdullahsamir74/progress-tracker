@@ -90,19 +90,24 @@ class TrackerFacade {
       const tasks = this.tracking.getTasks();
       const task = tasks[taskId] || {};
       const estimateMin = task.estimateMinutes || 0;
-      const durationMs = estimateMin * 60000;
-      const taskDate = task.start ? new Date(task.start) : new Date();
-      const endTime = new Date(taskDate.getTime() + durationMs);
-      this.tracking.saveSession({
-        taskId,
-        taskName: task.name || taskId,
-        startTime: taskDate.toISOString(),
-        endTime: endTime.toISOString(),
-        durationMs,
-        durationMinutes: estimateMin,
-        estimateMinutes: estimateMin || null,
-        completionSession: true,
-      });
+      if (estimateMin > 0) {
+        const durationMs = estimateMin * 60000;
+        const taskDate =
+          task.start && !isNaN(new Date(task.start).getTime())
+            ? new Date(task.start)
+            : new Date();
+        const endTime = new Date(taskDate.getTime() + durationMs);
+        this.tracking.saveSession({
+          taskId,
+          taskName: task.name || taskId,
+          startTime: taskDate.toISOString(),
+          endTime: endTime.toISOString(),
+          durationMs,
+          durationMinutes: estimateMin,
+          estimateMinutes: estimateMin,
+          completionSession: true,
+        });
+      }
     }
     return this.tracking.markComplete(taskId);
   }
@@ -173,6 +178,15 @@ class TrackerFacade {
 
   deleteHabit(habitId) {
     return this.tracking.deleteHabit(habitId);
+  }
+
+  // Weekly Targets delegations
+  getWeeklyTargets() {
+    return this.tracking.getWeeklyTargets();
+  }
+
+  saveWeeklyTarget(targetKey, hours) {
+    return this.tracking.saveWeeklyTarget(targetKey, hours);
   }
 }
 

@@ -14,21 +14,44 @@ class TimerService {
     this._interval = null;
   }
 
+  _calculateElapsedMs() {
+    if (!this._state.running || !this._state.startTime) return 0;
+    if (this._state.paused && this._state.pausedTime) {
+      return Math.max(
+        0,
+        this._state.pausedTime -
+          this._state.startTime -
+          this._state.totalPausedMs,
+      );
+    }
+    return Math.max(
+      0,
+      Date.now() - this._state.startTime - this._state.totalPausedMs,
+    );
+  }
+
   /**
    * Start a new timer
    */
   start(taskId, taskName, estimateMinutes, onTick) {
-    // Stop any existing timer
     if (this._interval) {
       clearInterval(this._interval);
+      this._interval = null;
     }
+
+    const est =
+      typeof estimateMinutes === "number" &&
+      !isNaN(estimateMinutes) &&
+      estimateMinutes > 0
+        ? estimateMinutes
+        : null;
 
     this._state = {
       running: true,
       paused: false,
-      taskId,
-      taskName,
-      estimateMinutes: estimateMinutes || null,
+      taskId: taskId || null,
+      taskName: taskName || "Untitled Task",
+      estimateMinutes: est,
       startTime: Date.now(),
       pausedTime: null,
       totalPausedMs: 0,
@@ -37,9 +60,8 @@ class TimerService {
 
     this._interval = setInterval(() => {
       if (!this._state.paused) {
-        this._state.elapsedMs =
-          Date.now() - this._state.startTime - this._state.totalPausedMs;
-        if (onTick) {
+        this._state.elapsedMs = this._calculateElapsedMs();
+        if (typeof onTick === "function") {
           onTick(this.getState());
         }
       }
@@ -55,6 +77,7 @@ class TimerService {
     if (this._state.running && !this._state.paused) {
       this._state.paused = true;
       this._state.pausedTime = Date.now();
+      this._state.elapsedMs = this._calculateElapsedMs();
     }
     return this.getState();
   }
@@ -64,22 +87,22 @@ class TimerService {
    */
   resume(onTick) {
     if (this._state.running && this._state.paused) {
-      const pauseDuration = Date.now() - this._state.pausedTime;
+      const pauseDuration = Date.now() - (this._state.pausedTime || Date.now());
       this._state.totalPausedMs += pauseDuration;
       this._state.paused = false;
       this._state.pausedTime = null;
 
-      // Re-attach tick callback if provided
-      if (onTick && this._interval) {
+      if (this._interval) {
         clearInterval(this._interval);
-        this._interval = setInterval(() => {
-          if (!this._state.paused) {
-            this._state.elapsedMs =
-              Date.now() - this._state.startTime - this._state.totalPausedMs;
+      }
+      this._interval = setInterval(() => {
+        if (!this._state.paused) {
+          this._state.elapsedMs = this._calculateElapsedMs();
+          if (typeof onTick === "function") {
             onTick(this.getState());
           }
-        }, 1000);
-      }
+        }
+      }, 1000);
     }
     return this.getState();
   }
@@ -95,30 +118,18 @@ class TimerService {
       this._interval = null;
     }
 
-    // Calculate final elapsed time
-    let finalElapsedMs;
-    if (this._state.paused) {
-      finalElapsedMs =
-        this._state.pausedTime -
-        this._state.startTime -
-        this._state.totalPausedMs;
-    } else {
-      finalElapsedMs =
-        Date.now() - this._state.startTime - this._state.totalPausedMs;
-    }
+    const finalElapsedMs = this._calculateElapsedMs();
 
     const session = {
       taskId: this._state.taskId,
       taskName: this._state.taskName,
       startTime: new Date(this._state.startTime).toISOString(),
       endTime: new Date().toISOString(),
-      durationMs: Math.max(0, finalElapsedMs),
-      durationMinutes:
-        Math.round((Math.max(0, finalElapsedMs) / 60000) * 100) / 100,
+      durationMs: finalElapsedMs,
+      durationMinutes: Math.round((finalElapsedMs / 60000) * 100) / 100,
       estimateMinutes: this._state.estimateMinutes,
     };
 
-    // Reset state
     this._state = {
       running: false,
       paused: false,
@@ -145,7 +156,7 @@ class TimerService {
    * Get current timer state
    */
   getState() {
-    const elapsedMs = this._state.running ? this._state.elapsedMs : 0;
+    const elapsedMs = this._state.running ? this._calculateElapsedMs() : 0;
     const elapsedSeconds = Math.floor(elapsedMs / 1000);
     const hours = Math.floor(elapsedSeconds / 3600);
     const minutes = Math.floor((elapsedSeconds % 3600) / 60);
@@ -164,7 +175,7 @@ class TimerService {
       estimateMinutes: this._state.estimateMinutes,
       elapsedMs,
       elapsedFormatted: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
-      progress,
+      progress: isNaN(progress) ? 0 : progress,
       hours,
       minutes,
       seconds,

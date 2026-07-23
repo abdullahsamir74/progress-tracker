@@ -5,6 +5,7 @@
 import {
   setTrackedTasks,
   setCustomProjects,
+  setWeeklyTargets,
   renderCurrentView,
 } from "../state.js";
 import { getLocalDateString } from "../utils.js";
@@ -50,6 +51,19 @@ export function initModals() {
         closeModals();
     });
 
+  // Global target modal
+  const globalCloseBtn = document.getElementById("btn-global-target-close");
+  const globalCancelBtn = document.getElementById("btn-global-target-cancel");
+  const globalOverlay = document.getElementById("global-target-modal-overlay");
+
+  if (globalCloseBtn) globalCloseBtn.addEventListener("click", closeModals);
+  if (globalCancelBtn) globalCancelBtn.addEventListener("click", closeModals);
+  if (globalOverlay) {
+    globalOverlay.addEventListener("click", (e) => {
+      if (e.target === globalOverlay) closeModals();
+    });
+  }
+
   // Form submissions
   document
     .getElementById("form-add-task")
@@ -60,6 +74,11 @@ export function initModals() {
   document
     .getElementById("form-edit-task")
     .addEventListener("submit", handleEditTask);
+
+  const formGlobalTarget = document.getElementById("form-global-target");
+  if (formGlobalTarget) {
+    formGlobalTarget.addEventListener("submit", handleSetGlobalTarget);
+  }
 }
 
 // ---- Add Task Modal ----
@@ -127,11 +146,38 @@ export function openEditTaskModal(task) {
   document.getElementById("edit-task-modal-overlay").style.display = "flex";
 }
 
+// ---- Global Target Modal ----
+export async function openGlobalTargetModal() {
+  const overlay = document.getElementById("global-target-modal-overlay");
+  const input = document.getElementById("global-target-hours");
+  if (!overlay || !input) return;
+
+  const targets = (await window.tracker.getWeeklyTargets()) || {};
+  input.value = targets["global"] || "";
+  overlay.style.display = "flex";
+
+  setTimeout(() => {
+    input.focus();
+    input.select();
+  }, 50);
+}
+
 // ---- Close All Modals ----
 export function closeModals() {
   document.getElementById("modal-overlay").style.display = "none";
   document.getElementById("estimate-modal-overlay").style.display = "none";
   document.getElementById("edit-task-modal-overlay").style.display = "none";
+  const globalOverlay = document.getElementById("global-target-modal-overlay");
+  if (globalOverlay) globalOverlay.style.display = "none";
+}
+
+async function handleSetGlobalTarget(e) {
+  e.preventDefault();
+  const val = document.getElementById("global-target-hours").value;
+  await window.tracker.saveWeeklyTarget("global", val);
+  setWeeklyTargets(await window.tracker.getWeeklyTargets());
+  closeModals();
+  renderCurrentView();
 }
 
 // ---- Handlers ----
@@ -141,12 +187,16 @@ async function handleAddTask(e) {
   const name = document.getElementById("task-name").value.trim();
   const date = document.getElementById("task-date").value;
   const time = document.getElementById("task-time").value;
-  const estimate =
-    parseInt(document.getElementById("task-estimate").value) || 60;
+  const parsedEst = parseInt(
+    document.getElementById("task-estimate").value,
+    10,
+  );
+  const estimate = isNaN(parsedEst) || parsedEst <= 0 ? 60 : parsedEst;
 
   if (!name || !date || !time) return;
 
   const startDate = new Date(`${date}T${time}`);
+  if (isNaN(startDate.getTime())) return;
   const endDate = new Date(startDate.getTime() + estimate * 60000);
 
   const task = {
@@ -170,9 +220,13 @@ async function handleSetEstimate(e) {
   e.preventDefault();
 
   const taskId = document.getElementById("estimate-task-id").value;
-  const minutes = parseInt(document.getElementById("estimate-minutes").value);
+  const parsedMin = parseInt(
+    document.getElementById("estimate-minutes").value,
+    10,
+  );
+  const minutes = isNaN(parsedMin) || parsedMin <= 0 ? null : parsedMin;
 
-  if (!taskId || !minutes) return;
+  if (!taskId) return;
 
   await window.tracker.setEstimate(taskId, minutes);
   setTrackedTasks(await window.tracker.getTasks());
@@ -190,12 +244,16 @@ async function handleEditTask(e) {
   const name = document.getElementById("edit-task-name").value.trim();
   const date = document.getElementById("edit-task-date").value;
   const time = document.getElementById("edit-task-time").value;
-  const estimate =
-    parseInt(document.getElementById("edit-task-estimate").value) || 0;
+  const parsedEst = parseInt(
+    document.getElementById("edit-task-estimate").value,
+    10,
+  );
+  const estimate = isNaN(parsedEst) || parsedEst <= 0 ? null : parsedEst;
 
   if (isManual) {
     if (!name || !date || !time) return;
     const startDate = new Date(`${date}T${time}`);
+    if (isNaN(startDate.getTime())) return;
     const endDate = new Date(startDate.getTime() + (estimate || 60) * 60000);
 
     const task = {
@@ -203,14 +261,14 @@ async function handleEditTask(e) {
       name,
       start: startDate.toISOString(),
       end: endDate.toISOString(),
-      estimateMinutes: estimate || null,
+      estimateMinutes: estimate,
       isManual: true,
       updatedAt: new Date().toISOString(),
     };
 
     await window.tracker.saveTask(task);
   } else {
-    await window.tracker.setEstimate(id, estimate || null);
+    await window.tracker.setEstimate(id, estimate);
   }
 
   setTrackedTasks(await window.tracker.getTasks());
@@ -232,6 +290,9 @@ export function initProjectModal() {
         "Create Project";
       document.getElementById("project-id").value = "";
       document.getElementById("project-name").value = "";
+      const targetInput = document.getElementById("project-target-hours");
+      if (targetInput) targetInput.value = "";
+
       const radios = document.getElementsByName("project-color");
       if (radios.length > 0) radios[0].checked = true;
       projModalOverlay.style.display = "flex";
@@ -267,11 +328,19 @@ export function initProjectModal() {
       const color = document.querySelector(
         'input[name="project-color"]:checked',
       ).value;
+      const targetHours = document.getElementById(
+        "project-target-hours",
+      )?.value;
 
       const project = { name, color };
       if (id) project.id = id;
 
-      await window.tracker.saveProject(project);
+      const saved = await window.tracker.saveProject(project);
+
+      if (saved && saved.id) {
+        await window.tracker.saveWeeklyTarget(saved.id, targetHours);
+      }
+
       setCustomProjects(await window.tracker.getProjects());
       closeProjModal();
       // Dynamically import to avoid circular deps
@@ -284,11 +353,17 @@ export function initProjectModal() {
 /**
  * Open the project modal in edit mode populated with the given project details.
  */
-export function openEditProjectModal(project) {
+export async function openEditProjectModal(project) {
   const projModalOverlay = document.getElementById("project-modal-overlay");
   document.getElementById("project-modal-title").textContent = "Edit Project";
   document.getElementById("project-id").value = project.id;
   document.getElementById("project-name").value = project.name;
+
+  const targets = (await window.tracker.getWeeklyTargets()) || {};
+  const targetInput = document.getElementById("project-target-hours");
+  if (targetInput) {
+    targetInput.value = targets[project.id] || "";
+  }
 
   const radio = document.querySelector(
     `input[name="project-color"][value="${project.color}"]`,
