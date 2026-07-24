@@ -376,9 +376,11 @@ body {
 #main-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--space-xl) var(--space-2xl);
   background: var(--bg-primary);
   position: relative;
+  min-width: 0;
 }
 
 .view {
@@ -394,7 +396,7 @@ body {
 #view-analytics.active {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--titlebar-height) - var(--space-xl) * 2);
+  min-height: 0;
 }
 
 @keyframes fadeIn {
@@ -580,5 +582,25 @@ body {
   }
   #analytics-chart-card {
     grid-row: auto;
+  }
+  .analytics-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  #main-content {
+    padding: var(--space-lg) var(--space-xl);
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  #main-content {
+    padding: var(--space-md) var(--space-lg);
+  }
+  .view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
   }
 }

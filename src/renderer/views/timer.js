@@ -402,13 +402,32 @@ async function renderTodaySessions() {
       minute: "2-digit",
       hour12: true,
     });
+    const sessionId = session.id || session.startTime || session.savedAt;
     item.innerHTML = `
       <div>
         <div class="session-task-name">${escapeHtml(session.taskName || "Unknown")}</div>
         <div class="session-time">${startTime}</div>
       </div>
-      <span class="session-duration">${formatDuration(session.durationMinutes)}${session.completionSession ? " ✓" : ""}</span>
+      <div class="session-right-group">
+        <span class="session-duration">${formatDuration(session.durationMinutes)}${session.completionSession ? " ✓" : ""}</span>
+        <button class="btn-delete-session" title="Delete this session" data-id="${escapeHtml(sessionId)}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     `;
+
+    const btnDelete = item.querySelector(".btn-delete-session");
+    if (btnDelete) {
+      btnDelete.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await window.tracker.deleteSession(sessionId);
+        await renderTodaySessions();
+      });
+    }
+
     listEl.appendChild(item);
   });
 }

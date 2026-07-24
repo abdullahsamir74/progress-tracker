@@ -219,6 +219,33 @@
   font-size: 11px;
   color: var(--text-muted);
 }
+.session-right-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.btn-delete-session {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  transition: all var(--transition-fast);
+}
+.session-item:hover .btn-delete-session {
+  opacity: 0.8;
+}
+.btn-delete-session:hover {
+  opacity: 1 !important;
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--accent-pink) !important;
+}
 
 /* --- Fullscreen Timer Overlay --- */
 .fullscreen-timer-overlay {

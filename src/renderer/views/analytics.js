@@ -93,6 +93,7 @@ function renderHeatmap(heatmapData) {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const todayKey = getLocalDateString(today);
   const currentYear = today.getFullYear();
 
   // Start date: Jan 1st of current year aligned to nearest Sunday
@@ -148,7 +149,7 @@ function renderHeatmap(heatmapData) {
 
     const cell = document.createElement("div");
     cell.className = `heatmap-cell level-${level}`;
-    if (tempDate > today) {
+    if (key > todayKey) {
       cell.classList.add("future-day");
     }
 

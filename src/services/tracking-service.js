@@ -168,10 +168,12 @@ class TrackingService {
    */
   saveSession(session) {
     const sessions = this.store.get("sessions", []);
-    sessions.push({
+    const sessionWithId = {
+      id: session.id || `session_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
       ...session,
       savedAt: new Date().toISOString(),
-    });
+    };
+    sessions.push(sessionWithId);
     this.store.set("sessions", sessions);
 
     // Update task's total tracked time
@@ -190,7 +192,44 @@ class TrackingService {
     tasks[session.taskId].updatedAt = new Date().toISOString();
     this.store.set("tasks", tasks);
 
-    return session;
+    return sessionWithId;
+  }
+
+  /**
+   * Delete a single session by id, startTime, or savedAt
+   */
+  deleteSession(identifier) {
+    if (!identifier) return false;
+    const sessions = this.store.get("sessions", []);
+    const index = sessions.findIndex(
+      (s) =>
+        s.id === identifier ||
+        s.startTime === identifier ||
+        s.savedAt === identifier,
+    );
+
+    if (index === -1) return false;
+
+    const [deletedSession] = sessions.splice(index, 1);
+    this.store.set("sessions", sessions);
+
+    // Recalculate totalTrackedMinutes for the associated task
+    if (deletedSession && deletedSession.taskId) {
+      const tasks = this.store.get("tasks", {});
+      if (tasks[deletedSession.taskId]) {
+        const remainingTaskSessions = sessions.filter(
+          (s) => s.taskId === deletedSession.taskId,
+        );
+        tasks[deletedSession.taskId].totalTrackedMinutes = remainingTaskSessions.reduce(
+          (sum, s) => sum + (s.durationMinutes || 0),
+          0,
+        );
+        tasks[deletedSession.taskId].updatedAt = new Date().toISOString();
+        this.store.set("tasks", tasks);
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -285,11 +324,10 @@ class TrackingService {
       taskStats[name].sessionsCount += 1;
     }
 
-    // Completion stats
-    const taskList = Object.values(tasks);
-    const relevantTasks = taskList.filter((t) => !t.deleted || t.completed);
-    const completedCount = relevantTasks.filter((t) => t.completed).length;
-    const totalTaskCount = relevantTasks.length;
+    // Completion stats (only active non-deleted tasks)
+    const activeTasks = Object.values(tasks).filter((t) => !t.deleted);
+    const completedCount = activeTasks.filter((t) => t.completed).length;
+    const totalTaskCount = activeTasks.length;
 
     // Streak calculation (calculated from all sessions to avoid range limits)
     let streak = 0;
@@ -424,9 +462,9 @@ class TrackingService {
     this.store.set("sessions", []);
     const tasks = this.store.get("tasks", {});
     for (const taskId in tasks) {
-      if (tasks[taskId].totalTrackedMinutes) {
-        tasks[taskId].totalTrackedMinutes = 0;
-      }
+      tasks[taskId].totalTrackedMinutes = 0;
+      tasks[taskId].completed = false;
+      tasks[taskId].completedAt = null;
     }
     this.store.set("tasks", tasks);
     return true;

@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld("tracker", {
   // Sessions
   getSessions: (taskId) => invokeTracker("getSessions", taskId),
   getAllSessions: () => invokeTracker("getAllSessions"),
+  deleteSession: (identifier) => invokeTracker("deleteSession", identifier),
   getAnalytics: (range) => invokeTracker("getAnalytics", range),
 
   // Timer

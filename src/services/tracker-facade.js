@@ -30,6 +30,10 @@ class TrackerFacade {
     return this.tracking.getAllSessions();
   }
 
+  deleteSession(identifier) {
+    return this.tracking.deleteSession(identifier);
+  }
+
   getAnalytics(range) {
     return this.tracking.getAnalytics(range);
   }
