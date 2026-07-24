@@ -225,46 +225,112 @@ async function renderWeeklyTargets(analytics) {
   gridEl.innerHTML = "";
 
   const targets = (await window.tracker.getWeeklyTargets()) || {};
-  const projects = (await window.tracker.getProjects()) || {};
 
   const globalTargetHours = targets["global"] || 0;
   const globalMins = analytics.currentWeekTotalMinutes || 0;
   const globalTrackedHours = Math.round((globalMins / 60) * 10) / 10;
-  const globalPercent =
+
+  const rawPercent =
+    globalTargetHours > 0 ? (globalTrackedHours / globalTargetHours) * 100 : 0;
+  const globalPercent = Math.min(100, Math.round(rawPercent));
+
+  const remainingHours =
     globalTargetHours > 0
-      ? Math.min(
-          100,
-          Math.round((globalTrackedHours / globalTargetHours) * 100),
-        )
+      ? Math.max(0, Math.round((globalTargetHours - globalTrackedHours) * 10) / 10)
       : 0;
 
-  // Global target card (Only Overall Weekly Target)
+  const isCompleted =
+    globalTargetHours > 0 && globalTrackedHours >= globalTargetHours;
+  const overTargetHours = isCompleted
+    ? Math.round((globalTrackedHours - globalTargetHours) * 10) / 10
+    : 0;
+
+  let statusBadgeHtml = "";
+  if (globalTargetHours === 0) {
+    statusBadgeHtml = `<span class="target-status-badge badge-neutral">No Goal Set</span>`;
+  } else if (isCompleted) {
+    statusBadgeHtml = `<span class="target-status-badge badge-success">🎯 Target Reached</span>`;
+  } else if (globalPercent >= 75) {
+    statusBadgeHtml = `<span class="target-status-badge badge-info">🔥 Almost There</span>`;
+  } else {
+    statusBadgeHtml = `<span class="target-status-badge badge-primary">⚡ In Progress</span>`;
+  }
+
+  const fillGradient = isCompleted
+    ? "linear-gradient(90deg, #059669, #10b981, #34d399)"
+    : "linear-gradient(90deg, #0284c7, #38bdf8, #818cf8)";
+  const fillGlow = isCompleted
+    ? "0 0 12px rgba(52, 211, 153, 0.4)"
+    : "0 0 12px rgba(56, 189, 248, 0.4)";
+
   const globalCard = document.createElement("div");
   globalCard.className = "target-item-card target-single-card";
   globalCard.style.cursor = "pointer";
   globalCard.title = "Click to edit overall weekly target";
+
   globalCard.innerHTML = `
-    <div class="target-item-header">
-      <span class="target-item-title">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Overall Target
-      </span>
-      <span class="target-item-status">${globalTrackedHours}h / ${globalTargetHours > 0 ? globalTargetHours + "h (" + globalPercent + "%)" : "No goal (click to set)"}</span>
-    </div>
-    <div class="target-track-bar">
-      <div class="target-fill-bar" style="width: ${globalPercent}%; background: linear-gradient(90deg, #38bdf8, #0284c7);"></div>
-    </div>
-    <div class="target-single-metrics">
-      <div class="target-metric-box">
-        <span class="target-metric-val">${globalTrackedHours}h</span>
-        <span class="target-metric-lbl">Tracked This Week</span>
+    <div class="target-card-top-row">
+      <div class="target-card-meta">
+        <div class="target-card-icon-title">
+          <div class="target-icon-wrapper">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div>
+            <span class="target-card-label">Weekly Progress</span>
+            <div class="target-card-subtitle">${globalTrackedHours}h tracked of ${globalTargetHours > 0 ? globalTargetHours + "h target" : "no target"}</div>
+          </div>
+        </div>
       </div>
-      <div class="target-metric-box">
-        <span class="target-metric-val">${globalTargetHours > 0 ? globalTargetHours + "h" : "--"}</span>
-        <span class="target-metric-lbl">Weekly Goal</span>
+      ${statusBadgeHtml}
+    </div>
+
+    <div class="target-progress-section">
+      <div class="target-progress-header">
+        <span class="target-progress-pct-val ${isCompleted ? "pct-completed" : ""}">${globalTargetHours > 0 ? Math.round(rawPercent) + "%" : "0%"}</span>
+        <span class="target-progress-remaining-text">
+          ${
+            globalTargetHours === 0
+              ? "Set a target to start tracking progress"
+              : isCompleted
+                ? overTargetHours > 0
+                  ? `+${overTargetHours}h over target!`
+                  : "Target achieved!"
+                : `${remainingHours}h remaining`
+          }
+        </span>
+      </div>
+      <div class="target-track-bar-enhanced">
+        <div class="target-fill-bar-enhanced" style="width: ${globalPercent}%; background: ${fillGradient}; box-shadow: ${fillGlow};">
+          <div class="target-fill-glow-tip"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="target-metrics-grid">
+      <div class="target-metric-card">
+        <span class="target-metric-value text-accent">${globalTrackedHours}<span class="target-metric-unit">h</span></span>
+        <span class="target-metric-label">Tracked</span>
+      </div>
+      <div class="target-metric-card">
+        <span class="target-metric-value">${globalTargetHours > 0 ? globalTargetHours + '<span class="target-metric-unit">h</span>' : "--"}</span>
+        <span class="target-metric-label">Goal</span>
+      </div>
+      <div class="target-metric-card">
+        <span class="target-metric-value ${isCompleted ? "text-success" : "text-primary"}">
+          ${globalTargetHours > 0 ? (isCompleted ? "+" + overTargetHours + "h" : remainingHours + "h") : "--"}
+        </span>
+        <span class="target-metric-label">${isCompleted ? "Surplus" : "Remaining"}</span>
+      </div>
+      <div class="target-metric-card">
+        <span class="target-metric-value ${isCompleted ? "text-success" : ""}">${globalTargetHours > 0 ? Math.round(rawPercent) + "%" : "0%"}</span>
+        <span class="target-metric-label">Completion</span>
       </div>
     </div>
   `;
+
   globalCard.addEventListener("click", () => openGlobalTargetModal());
   gridEl.appendChild(globalCard);
 }
